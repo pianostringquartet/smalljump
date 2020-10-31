@@ -33,24 +33,34 @@ struct ContentView: View {
 
         var body: some View {
             
-            // solve the 'reset problem'
+            // solve the 'reset problem' by:
+            // keeping track of how much we've moved
+            
+            
+            // note: CGSize has two dimensions: width, height
+            // onChange and onEnded callbacks receive a value
+            
         
             
-            LinearGradient(gradient: /*@START_MENU_TOKEN@*/Gradient(colors: [Color.red, Color.blue])/*@END_MENU_TOKEN@*/, startPoint: .topLeading, endPoint: .bottomTrailing)
+            LinearGradient(gradient: Gradient(colors: [Color.yellow, Color.green]), startPoint: .topLeading, endPoint: .bottomTrailing)
                 .clipShape(/*@START_MENU_TOKEN@*/Circle()/*@END_MENU_TOKEN@*/)
                 .frame(width: 60, height: 60).border(Color.red)
+                
+                // what is the offset, such that it would be the `dragged`, rather than the `accumulated`?
                 .offset(x: self.dragged.width, y: self.dragged.height)
             
 
                 .gesture(DragGesture()
                     .onChanged{ value in
+                        // while we're dragging, we only modify `dragged`
                         self.dragged = CGSize(width: value.translation.width + self.accumulated.width, height: value.translation.height + self.accumulated.height)
                 }
                 .onEnded{ value in
+//                    once we've finished dragging, we update the
                     self.dragged = CGSize(width: value.translation.width + self.accumulated.width, height: value.translation.height + self.accumulated.height)
                     self.accumulated = self.dragged
                     }
-                ).animation(/*@START_MENU_TOKEN@*/.easeIn/*@END_MENU_TOKEN@*/)
+                ).animation(.spring())
         }
     }
     
