@@ -26,6 +26,41 @@ struct ContentView: View {
             .clipShape(Circle())
     }
     
+    struct ColoredCircle: View {
+
+        @State private var dragged = CGSize.zero
+        @State private var accumulated = CGSize.zero
+
+        let topColor, bottomColor: Color
+        let radius: CGFloat
+        
+        init(topColor: Color, bottomColor: Color, radius: CGFloat) {
+            self.topColor = topColor
+            self.bottomColor = bottomColor
+            self.radius = radius
+        }
+        
+        var body: some View {
+        
+            LinearGradient(gradient: Gradient(colors: [topColor, bottomColor]), startPoint: .topLeading, endPoint: .bottomTrailing)
+                .clipShape(/*@START_MENU_TOKEN@*/Circle()/*@END_MENU_TOKEN@*/)
+                .frame(width: radius, height: radius, alignment: /*@START_MENU_TOKEN@*/.center/*@END_MENU_TOKEN@*/)//.frame(width: 60, height: 60) //.border(Color.red)
+                .offset(x: self.dragged.width, y: self.dragged.height)
+                .animation(.default)
+                .gesture(DragGesture()
+                    .onChanged{ value in
+                        self.dragged = CGSize(width: value.translation.width + self.accumulated.width, height: value.translation.height + self.accumulated.height)
+                        
+                    }
+                    .onEnded{ value in
+                        self.dragged = CGSize(width: value.translation.width + self.accumulated.width, height: value.translation.height + self.accumulated.height)
+                        self.accumulated = self.dragged
+                    }
+                )
+        }
+    }
+    
+    
     struct MovingCircle: View {
 
         @State private var dragged = CGSize.zero
@@ -41,15 +76,16 @@ struct ContentView: View {
             // onChange and onEnded callbacks receive a value
             
         
-            
             LinearGradient(gradient: Gradient(colors: [Color.yellow, Color.green]), startPoint: .topLeading, endPoint: .bottomTrailing)
                 .clipShape(/*@START_MENU_TOKEN@*/Circle()/*@END_MENU_TOKEN@*/)
-                .frame(width: 60, height: 60).border(Color.red)
+                .frame(width: 60, height: 60) //.border(Color.red)
                 
                 // what is the offset, such that it would be the `dragged`, rather than the `accumulated`?
                 .offset(x: self.dragged.width, y: self.dragged.height)
             
-
+                // animation here vs after .gesture?
+                .animation(.default)
+                
                 .gesture(DragGesture()
                     .onChanged{ value in
                         // while we're dragging, we only modify `dragged`
@@ -60,7 +96,7 @@ struct ContentView: View {
                     self.dragged = CGSize(width: value.translation.width + self.accumulated.width, height: value.translation.height + self.accumulated.height)
                     self.accumulated = self.dragged
                     }
-                ).animation(.spring())
+                )
         }
     }
     
@@ -74,40 +110,41 @@ struct ContentView: View {
                             .onEnded { _ in
                                 withAnimation(.spring()) { self.dragAmount3 = .zero }
                             })
-            LinearGradient(gradient: Gradient(colors: [.green, .blue]), startPoint: .topLeading, endPoint: .bottomTrailing)
-                .frame(width: 100, height: 200)
-                .clipShape(Circle())
-                .offset(dragAmount2)
-                // `onChanged()`: fn calls whnver the user moves their finger
-                // `onEnded` fn calld
-                .gesture(DragGesture()
-                            // 'translation of the drag' = how far we moved from start point
-                            .onChanged { self.dragAmount2 = $0.translation }
-                            .onEnded { _ in
-                                withAnimation(.spring()) { self.dragAmount2 = .zero }
-                            })
-            
-            LinearGradient(gradient: Gradient(colors: [.yellow, .red]), startPoint: .topLeading, endPoint: .bottomTrailing)
-                .clipShape(/*@START_MENU_TOKEN@*/Circle()/*@END_MENU_TOKEN@*/)
-                .frame(width: 100, height: 100).border(Color.black)
-    
-                // offset adjusts the X and Y cordinate of a view without moving other views around it
-                // without an offset the circle can't move?
-                .offset(dragAmount)
-                
-                        
-                // we create a drag gesture and attach it to the card
-                // `onChanged()`: fn calls whnver the user moves their finger
-                // `onEnded` fn calld
-                .gesture(DragGesture()
-                            // 'translation of the drag' = how far we moved from start point
-                            .onChanged { self.dragAmount = $0.translation }
-                
-                            // even with this, we still reset the items position upon next drag
-                            .onEnded { self.dragAmount = $0.translation }
-                )
+//            LinearGradient(gradient: Gradient(colors: [.green, .blue]), startPoint: .topLeading, endPoint: .bottomTrailing)
+//                .frame(width: 100, height: 200)
+//                .clipShape(Circle())
+//                .offset(dragAmount2)
+//                // `onChanged()`: fn calls whnver the user moves their finger
+//                // `onEnded` fn calld
+//                .gesture(DragGesture()
+//                            // 'translation of the drag' = how far we moved from start point
+//                            .onChanged { self.dragAmount2 = $0.translation }
+//                            .onEnded { _ in
+//                                withAnimation(.spring()) { self.dragAmount2 = .zero }
+//                            })
+//
+//            LinearGradient(gradient: Gradient(colors: [.yellow, .red]), startPoint: .topLeading, endPoint: .bottomTrailing)
+//                .clipShape(/*@START_MENU_TOKEN@*/Circle()/*@END_MENU_TOKEN@*/)
+//                .frame(width: 100, height: 100).border(Color.black)
+//
+//                // offset adjusts the X and Y cordinate of a view without moving other views around it
+//                // without an offset the circle can't move?
+//                .offset(dragAmount)
+//
+//
+//                // we create a drag gesture and attach it to the card
+//                // `onChanged()`: fn calls whnver the user moves their finger
+//                // `onEnded` fn calld
+//                .gesture(DragGesture()
+//                            // 'translation of the drag' = how far we moved from start point
+//                            .onChanged { self.dragAmount = $0.translation }
+//
+//                            // even with this, we still reset the items position upon next drag
+//                            .onEnded { self.dragAmount = $0.translation }
+//                )
             
             MovingCircle()
+            ColoredCircle(topColor: .white, bottomColor: .pink, radius: 75)
                 
                 
 //                            .onEnded { _ in
