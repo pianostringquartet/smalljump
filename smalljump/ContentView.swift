@@ -62,7 +62,6 @@ func updatePosition(value: DragGesture.Value, position: CGSize) -> CGSize {
 struct EdgeBall: View {
     @State private var position = CGSize.zero
     @State private var previousPosition = CGSize.zero
-    @State private var isActive: Bool = true
     
     let idx: Int
     let color: Color
@@ -99,7 +98,12 @@ struct ContentView: View {
                 EdgeBall(idx: 2, color: .green, radius: 75)
             }
             EdgeBall(idx: 3, color: .blue, radius: 50)
-        }.backgroundPreferenceValue(BallPreferenceKey.self) { preferences in
+        }
+        
+        // parent uses preference data to know about balls' relative centers
+        .backgroundPreferenceValue(BallPreferenceKey.self) { preferences in
+            
+            // use GeometryReader to get absolute center of ball
             GeometryReader { geometry in
                 // TODO: cleaner, programmatic construction of edges
                 let point0 = geometry[preferences[0].center]
