@@ -28,6 +28,9 @@ struct BallPreferenceData: Identifiable {
     let viewIdx: Int
     let center: Anchor<CGPoint>
     let isEnabled: Bool
+    
+    // list of other nodes, id'd by Index, that this node can be / should be / is connected to
+    let connectionSet: [Int]
 }
 
 // Preference key for preference data
@@ -82,9 +85,29 @@ func updatePosition(value: DragGesture.Value, position: CGSize) -> CGSize {
     
     @State private var isEnabled: Bool = true
     
-    let idx: Int
+    // ForEach connection in connectionSet, create a node
+    
+    // connectionSet starts out empty
+//    @State private var connectionSet: [Int] = []
+    
+    let connectionSet: [Int]
+    
+    let idx: Int // should still be able to use their
     let color: Color
     let radius: CGFloat
+    
+    // can pass connectionSet to EdgeBall when
+//    init(connectionSet: [Int]) {
+//        self.connectionSet = connectionSet
+//    }
+    
+    init(idx: Int, color: Color, radius: CGFloat, connectionSet: [Int]) {
+        self.idx = idx
+        self.color = color
+        self.radius = radius
+        self.connectionSet = connectionSet
+    }
+     
     
     var body: some View {
         coloredCircle(color: isEnabled ? color : Color.gray,
@@ -96,15 +119,20 @@ func updatePosition(value: DragGesture.Value, position: CGSize) -> CGSize {
                               value: .center, // center for Anchor<CGPoint>
                               transform: { [BallPreferenceData(viewIdx: self.idx,
                                                                center: $0,
-                                                               isEnabled: isEnabled )] })
+                                                               isEnabled: isEnabled,
+                                                               connectionSet: connectionSet
+                              )] })
             .offset(x: self.position.width, y: self.position.height)
             .gesture(DragGesture()
                         .onChanged { self.position = updatePosition(value: $0, position: self.previousPosition) }
                         .onEnded { _ in self.previousPosition = self.position })
             .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))
-            .onTapGesture(count: 2, perform: {
-                self.isEnabled.toggle()
-            })
+
+        // remove the tap gesture
+        // or use double tap to enter 'edit connection mode'
+//            .onTapGesture(count: 2, perform: {
+//                self.isEnabled.toggle()
+//            })
     }
 }
 
@@ -120,7 +148,12 @@ struct ContentView: View {
     var body: some View {
         VStack (spacing: CGFloat(25)) {
             ForEach(0 ..< ballCount, id: \.self) { count -> EdgeBall in
-                EdgeBall(idx: count, color: .red, radius: 25)
+//                EdgeBall(idx: count, color: Color.red, radius: 25)
+                
+                // 0..< ballCount should be ALL nodes for now
+                let connectionSet: [Int] = Array(0 ..< ballCount)
+                log("connectionSet in ForEach ballCount: \(connectionSet)")
+                return EdgeBall(idx: count, color: Color.red, radius: 25, connectionSet: connectionSet)
             }
             Button(action: {
                 self.ballCount += 1
@@ -136,18 +169,52 @@ struct ContentView: View {
         }.backgroundPreferenceValue(BallPreferenceKey.self) { preferences in
              GeometryReader { geometry in
                 ForEach(preferences, content: { (pref: BallPreferenceData) in
-                    // Only draw edge if at least two nodes and node is enabled
-                    if preferences.count >= 2 && pref.isEnabled {
+                    if preferences.count >= 2 {
+                        log("We might draw some lines.")
+                        
                         let currentPreference = preferences[pref.viewIdx]
-                        ForEach(preferences, content: { (pref2: BallPreferenceData) in
+                        let currentConnectionSet: [Int] = pref.connectionSet
+                        log("currentConnectionSet in ForEach preferences: \(currentConnectionSet)")
+                        
+                        // draw a connection from the current node to each node in the connection set
+                        ForEach(preferences, content: { (pref2 : BallPreferenceData) in
                             let additionalPreference = preferences[pref2.viewIdx]
-                            // Only draw edge is both nodes enabled
-                            if additionalPreference.isEnabled && currentPreference.isEnabled {
+                            
+                            // for each preference/node pref1,
+                            // go through every other preference/node pref2,
+                            // and if pref2's index is in pref1's connection set,
+                            // draw an edge
+                            
+                            // print out both the connection set and the current index,
+                            // to make sure the .contains stuff is getting it right
+                            log("pref2.viewIdx: \(pref2.viewIdx)")
+                            
+                            if currentConnectionSet.contains(pref2.viewIdx) {
+                                log("We're gonna draw a line.")
                                 line(from: geometry[currentPreference.center],
                                      to: geometry[additionalPreference.center])
                             }
-                        } )
+                            
+                            
+                        })
                     }
+                    else {
+                        log("We will NOT draw any lines.")
+                    }
+                    
+                    
+                    // Only draw edge if at least two nodes and node is enabled
+//                    if preferences.count >= 2 && pref.isEnabled {
+//                        let currentPreference = preferences[pref.viewIdx]
+//                        ForEach(preferences, content: { (pref2: BallPreferenceData) in
+//                            let additionalPreference = preferences[pref2.viewIdx]
+//                            // Only draw edge is both nodes enabled
+//                            if additionalPreference.isEnabled && currentPreference.isEnabled {
+//                                line(from: geometry[currentPreference.center],
+//                                     to: geometry[additionalPreference.center])
+//                            }
+//                        } )
+//                    }
                 })
             }}
     }
