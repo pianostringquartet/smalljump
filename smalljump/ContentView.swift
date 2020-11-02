@@ -151,9 +151,26 @@ struct ContentView: View {
 //                EdgeBall(idx: count, color: Color.red, radius: 25)
                 
                 // 0..< ballCount should be ALL nodes for now
+                
+                // this works, but we want to use LESS THAN
+                
+                // can we do random number generation, and filter to be less than ballCount?
+                let x: Int = Int.random(in: 0...ballCount)
+                let y: Int = Int.random(in: 0...ballCount)
+                let z: Int = Int.random(in: 0...ballCount)
+                
+//                let mySet: [Int] = [].map({Int.random(in: 0...ballCount)})
+                let mySet: [Int] = [x, y, z]
+                log("mySet in ForEach ballCount: \(mySet)")
+                
                 let connectionSet: [Int] = Array(0 ..< ballCount)
                 log("connectionSet in ForEach ballCount: \(connectionSet)")
-                return EdgeBall(idx: count, color: Color.red, radius: 25, connectionSet: connectionSet)
+                
+                return EdgeBall(idx: count,
+                                color: Color.red,
+                                radius: 25,
+                                connectionSet: mySet //connectionSet
+                )
             }
             Button(action: {
                 self.ballCount += 1
