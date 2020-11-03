@@ -18,21 +18,6 @@ func log(_ log: String) -> EmptyView {
 }
 
 
-extension View {
-  @ViewBuilder
-  func `if`<Transform: View>(
-    _ condition: Bool,
-    transform: (Self) -> Transform
-  ) -> some View {
-    if condition {
-      transform(self)
-    } else {
-      self
-    }
-  }
-}
-
-
 /* ----------------------------------------------------------------
  PREFERENCE DATA: passing data up from children to parent view
  ---------------------------------------------------------------- */
@@ -86,16 +71,6 @@ func line(from: CGPoint, to: CGPoint) -> some View {
     Line(from: from, to: to).stroke().animation(.default)
 }
 
-
-func coloredCircle(color: Color, radius: CGFloat) -> some View {
-    LinearGradient(gradient: Gradient(colors: [.white, color]),
-                   startPoint: .topLeading,
-                   endPoint: .bottomTrailing)
-        .frame(width: radius, height: radius)
-        .clipShape(Circle())
-}
-
-
 // ball's new position = old position + displacement from current drag gesture
 func updatePosition(value: DragGesture.Value, position: CGSize) -> CGSize {
     CGSize(width: value.translation.width + position.width,
@@ -113,66 +88,76 @@ struct Ball: View {
     @Binding public var connections: [Connection]
     @Binding public var nodeCount: Int
     
-    let idx: Int
-    let color: Color
+    let nodeNumber: Int
     let radius: CGFloat
     
-    init(idx: Int, color: Color, radius: CGFloat, connections: Binding<[Connection]>, nodeCount: Binding<Int>) {
-        self.idx = idx
-        self.color = color
+    init(nodeNumber: Int, radius: CGFloat, connections: Binding<[Connection]>, nodeCount: Binding<Int>) {
+        self.nodeNumber = nodeNumber
         self.radius = radius
         self._connections = connections
         self._nodeCount = nodeCount
     }
      
+    func determineColor() -> Color {
+        return !isAnchored ? .blue : Color.gray.opacity(0 + Double((abs(position.height) + abs(position.width)) / 99))
+    }
+    
     var body: some View {
-        coloredCircle(color: isAnchored ? .gray : .blue, //color,
-                      radius: radius)
-        // Child stores its center in anchor preference data,
-        // for parent to later access.
-        // NOTE: must come before .offset modifier
-        .anchorPreference(key: BallPreferenceKey.self,
-                          value: .center, // center for Anchor<CGPoint>
-                          transform: { [BallPreferenceData(viewIdx: self.idx, center: $0)] })
-        .offset(x: self.position.width, y: self.position.height)
-        .gesture(DragGesture()
-                    .onChanged { (value: DragGesture.Value) in
-//                            self.position = updatePosition(value: $0, position: self.previousPosition)
-                        self.position = updatePosition(value: value, position: self.previousPosition)
-                    }
-                    .onEnded { (value: DragGesture.Value) in
-                        
-                        log("onEnded: value.translation: \(value.translation)");
-                        log("onEnded: isAnchored: \(isAnchored)")
-                        log("onEnded: nodeCount: \(nodeCount)")
-                        if isAnchored { // only care about minDistance etc. if Anchorded
-                            let minDistance: CGFloat = CGFloat(100)
-                            let movedEnough: Bool =
-                                abs(value.translation.width) > minDistance ||
-                                abs(value.translation.height) > minDistance
-                            if movedEnough {
-                                log("moved enough")
-                                self.isAnchored.toggle()
-                                self.previousPosition = self.position
-                                
-                                // ball was anchored, but was moved enough to become regular ball
-                                // so we now need a new ball
+//      LinearGradient(gradient: Gradient(colors: [.white, isAnchored ? .gray : .blue,]),
+        LinearGradient(gradient: Gradient(colors: [.white, determineColor()]),
+                       startPoint: .topLeading,
+                       endPoint: .bottomTrailing)
+//          .frame(width: radius, height: radius) // PREVIOUSLY
+            .clipShape(Circle())
+            .background(Image(systemName: "plus"))
+            
+            // Child stores its center in anchor preference data,
+            // for parent to later access.
+            // NOTE: must come before .offset modifier
+            .anchorPreference(key: BallPreferenceKey.self,
+                              value: .center, // center for Anchor<CGPoint>
+                              transform: { [BallPreferenceData(viewIdx: self.nodeNumber, center: $0)] })
+            .offset(x: self.position.width, y: self.position.height)
+            .gesture(DragGesture()
+                        .onChanged { (value: DragGesture.Value) in
+    //                            self.position = updatePosition(value: $0, position: self.previousPosition)
+                            self.position = updatePosition(value: value, position: self.previousPosition)
+                        }
+                        .onEnded { (value: DragGesture.Value) in
+                            
+                            log("onEnded: value.translation: \(value.translation)");
+    //                        log("onEnded: isAnchored: \(isAnchored)")
+    //                        log("onEnded: nodeCount: \(nodeCount)")
+                            if isAnchored { // only care about minDistance etc. if Anchorded
+//                                let minDistance: CGFloat = CGFloat(100)
+                                let minDistance: CGFloat = CGFloat(90)
+                                let movedEnough: Bool =
+                                    abs(value.translation.width) > minDistance ||
+                                    abs(value.translation.height) > minDistance
+                                if movedEnough {
+                                    log("moved enough")
+                                    self.isAnchored.toggle()
+                                    self.previousPosition = self.position
+                                    
+                                    // ball was anchored, but was moved enough to become regular ball
+                                    // so we now need a new ball
 
-                                log("nodeCount was: \(nodeCount)")
-                                self.nodeCount += 1
-                                log("nodeCount is now: \(nodeCount)")
-                                log("idx is: \(idx)")
+                                    log("nodeCount was: \(nodeCount)")
+                                    self.nodeCount += 1
+                                    log("nodeCount is now: \(nodeCount)")
+                                    log("idx is: \(nodeNumber)")
+                                }
+                                else {
+                                    log("did not move enough");
+                                    withAnimation(.spring()) { self.position = .zero }
+                                }
                             }
                             else {
-                                log("did not move enough");
-                                withAnimation(.spring()) { self.position = .zero }
-                            }
-                        }
-                        else {
-                            log("is not anchored; will let move freely");
-                            self.previousPosition = self.position }
-                    })
-        .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))
+                                log("is not anchored; will let move freely");
+                                self.previousPosition = self.position }
+                        })
+            .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))
+            .frame(width: radius, height: radius)
     }
 }
 
@@ -206,14 +191,13 @@ struct ContentView: View {
             log("nodeCount: \(nodeCount)")
             
             ForEach(1 ..< nodeCount + 1, id: \.self) { nodeNumber -> Ball in
-                Ball(idx: nodeNumber,
-                    color: Color.red,
-                    radius: 10,
+                Ball(nodeNumber: nodeNumber,
+                    radius: 40,
                     connections: $connections,
                     nodeCount: $nodeCount)
             }
+            
         }
-        
         // do nothing for now
         .backgroundPreferenceValue(BallPreferenceKey.self) { (preferences: [BallPreferenceData]) in
 //            if connections.count >= 1 && nodeCount >= 2 {
