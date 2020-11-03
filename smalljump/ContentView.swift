@@ -20,11 +20,8 @@ func log(_ log: String) -> EmptyView {
 
 var audioPlayer: AVAudioPlayer?
 
-//let path = Bundle.main.path(forResource: "example.mp3", ofType: nil)
-//let url = URL(fileURLWithPath: path)
-
 func playSound(sound: String, type: String) {
-    if let path = Bundle.main.path(forResource: sound, ofType: type) { // or?: `ofType: type`
+    if let path = Bundle.main.path(forResource: sound, ofType: type) {
         do {
             log("Will try to play sound")
             audioPlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: path))
@@ -99,8 +96,13 @@ func updatePosition(value: DragGesture.Value, position: CGSize) -> CGSize {
 struct Ball: View {
     
     // ie balls start out at .zero
+//    @State private var position = CGSize.zero
+//    @State private var previousPosition = CGSize.zero
+    
+    
     @State private var position = CGSize.zero
     @State private var previousPosition = CGSize.zero
+    
     @State private var isAnchored: Bool = true // true just iff ball has NEVER 'been moved enough'
         
     @Binding public var connections: [Connection]
@@ -137,9 +139,9 @@ struct Ball: View {
                               transform: { [BallPreferenceData(viewIdx: self.nodeNumber, center: $0)] })
             .offset(x: self.position.width, y: self.position.height)
             .gesture(DragGesture()
-                        .onChanged { (value: DragGesture.Value) in
-    //                            self.position = updatePosition(value: $0, position: self.previousPosition)
-                            self.position = updatePosition(value: value, position: self.previousPosition)
+                        .onChanged { //(value: DragGesture.Value) in
+                                self.position = updatePosition(value: $0, position: self.previousPosition)
+//                            self.position = updatePosition(value: value, position: self.previousPosition)
                         }
                         .onEnded { (value: DragGesture.Value) in
                             
@@ -205,18 +207,25 @@ struct ContentView: View {
     @State public var connections: [Connection] = []
 
     // everytime the data changes, this exact code is run again with the data
+    // but any components with local state will retain their local state, e.g. their position
     var body: some View {
-        ZStack {
-            log("nodeCount: \(nodeCount)")
-            
-            ForEach(1 ..< nodeCount + 1, id: \.self) { nodeNumber -> Ball in
-                Ball(nodeNumber: nodeNumber,
-                    radius: 40,
-                    connections: $connections,
-                    nodeCount: $nodeCount)
+        // Hack for corner alignment
+        VStack {
+            Spacer()
+            HStack {
+                Spacer()
+                ZStack {
+                    log("nodeCount: \(nodeCount)")
+                    ForEach(1 ..< nodeCount + 1, id: \.self) { nodeNumber -> Ball in
+                        Ball(nodeNumber: nodeNumber,
+                            radius: 40,
+                            connections: $connections,
+                            nodeCount: $nodeCount)
+                    }.padding(.trailing, 10).padding(.bottom, 10)
+                }
             }
-            
         }
+        
         // do nothing for now
         .backgroundPreferenceValue(BallPreferenceKey.self) { (preferences: [BallPreferenceData]) in
 //            if connections.count >= 1 && nodeCount >= 2 {
