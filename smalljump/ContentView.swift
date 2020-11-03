@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AVFoundation
 
 /* ----------------------------------------------------------------
  UTILS
@@ -15,6 +16,23 @@ import SwiftUI
 func log(_ log: String) -> EmptyView {
     print("** \(log)")
     return EmptyView()
+}
+
+var audioPlayer: AVAudioPlayer?
+
+//let path = Bundle.main.path(forResource: "example.mp3", ofType: nil)
+//let url = URL(fileURLWithPath: path)
+
+func playSound(sound: String, type: String) {
+    if let path = Bundle.main.path(forResource: sound, ofType: type) { // or?: `ofType: type`
+        do {
+            log("Will try to play sound")
+            audioPlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: path))
+            audioPlayer?.play()
+        } catch {
+            log("Unable to play sound")
+        }
+    }
 }
 
 
@@ -146,6 +164,7 @@ struct Ball: View {
                                     self.nodeCount += 1
                                     log("nodeCount is now: \(nodeCount)")
                                     log("idx is: \(nodeNumber)")
+                                    playSound(sound: "positive_ping", type: "mp3")
                                 }
                                 else {
                                     log("did not move enough");
