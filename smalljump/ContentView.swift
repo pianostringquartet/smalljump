@@ -96,7 +96,6 @@ struct EdgeBall: View {
     @Binding public var connections: [Connection]
     @Binding public var connectingNode: Int?
     
-    
     let idx: Int
     let color: Color
     let radius: CGFloat
@@ -128,24 +127,48 @@ struct EdgeBall: View {
             .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))
              // Note: double-tap gesture must come before single-tap gesture
             .onTapGesture(count: 2, perform: {
+                            // any time we double click the node, we put it
+                            
+                            // possible states:
+                            // edit mode: i'm cnode and i was enabled
+                            // edit mode: i'm cnode and i was disabled
+                            // edit mode: i'm not cnode and i was disabled
+                            
+                            // i.e. if there was no existing cnode, and I'm disabled, re
+                            if !existsConnectingNode && !isEnabled {
+                                self.connectingNode = self.idx
+                                self.isEnabled = true
+                            }
+                            
+                            if isConnectingNode && !isEnabled {
+                                // automatically enable nodes that become the connecting node,
+//                                self.isEnabled.toggle()
+                                self.isEnabled = true
+                            }
+                            
                             if existsConnectingNode && isConnectingNode {
-                                self.connectingNode = nil
+                                log("edit mode: this node \(self.idx) is connecting node")
+                                self.connectingNode = nil // ie user has toggled connecting mode off
+                                // and re-enable the node:
+                                self.isEnabled = true
                             }
                             else {
                                 self.connectingNode = self.idx
                             }})
+            
             .onTapGesture(count: 1, perform: {
-                if existsConnectingNode {
-                    let newConnection: Connection = Connection(from: self.connectingNode!, to: self.idx)
-                    log("newConnection will be: \(newConnection)")
-                    log("self.connections was: \(self.connections)")
-                    self.connections.append(newConnection)
-                    log("self.connections is now: \(self.connections)")
-                }
-                else {
-                    log("tappd once; no cnode, so just toggling isEnabled")
+                //
+                
+                if !existsConnectingNode { // if we're not in editing mode, enable/disable this node
+                    log("not in edit mode: this node \(self.idx) will be enabled/disabled")
                     self.isEnabled.toggle()
                 }
+                // if we're in editing mode and this node is enabled:
+                else if existsConnectingNode && isEnabled {
+                    let newConnection: Connection = Connection(from: self.connectingNode!, to: self.idx)
+                    self.connections.append(newConnection)
+                }
+                // else: if we're in editing mode but this node is disabled, don't create a new connection
             })
     }
 }
@@ -183,29 +206,43 @@ struct ContentView: View {
                     .background(Color.blue)
                     .clipShape(/*@START_MENU_TOKEN@*/Circle()/*@END_MENU_TOKEN@*/)
                     .foregroundColor(.white)
-            }
-        }
-        
+            }}
         .backgroundPreferenceValue(BallPreferenceKey.self) { (preferences: [BallPreferenceData]) in
             if connections.count >= 1 && ballCount >= 2 {
-                log("we have at least one connection")
                 GeometryReader { (geometry: GeometryProxy) in
                     ForEach(connections, content: { (connection: Connection) in
                         let toPref: BallPreferenceData = preferences[connection.to]
                         let fromPref: BallPreferenceData = preferences[connection.from]
                         
-                        if toPref.isEnabled && fromPref.isEnabled {
-                            log("both are enabled")
+                        // TODO: Simplify this logic
+//                            better?:
+                        log("connection.to: \(connection.to)")
+                        log("connection.from: \(connection.from)")
+                        log("toPref.isEnabled: \(toPref.isEnabled)")
+                        log("fromPref.isEnabled: \(fromPref.isEnabled)")
+                        
+                        let cannotDraw: Bool = !toPref.isEnabled || !fromPref.isEnabled
+                        log("cannotDraw: \(cannotDraw)")
+                        
+                        
+                        // if one of them is disabled
+                        
+                        
+                        if !cannotDraw {
                             line(from: geometry[toPref.center],
                                  to: geometry[fromPref.center])
                         }
-//                        line(from: geometry[toPref.center],
-//                             to: geometry[fromPref.center])
+                        
+//                        let canDrawConnection: Bool = (toPref.isEnabled && fromPref.isEnabled)
+//                            || (connection.to == connectingNode && fromPref.isEnabled)
+//                            || (connection.from == connectingNode && toPref.isEnabled)
+//
+//                        if canDrawConnection {
+//                            line(from: geometry[toPref.center],
+//                                 to: geometry[fromPref.center])
+//                        }
                     })
                 }
-            }
-            else {
-                log("we don't have any connections to draw")
             }
         }
     }
