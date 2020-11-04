@@ -118,18 +118,32 @@ struct Ball: View {
     }
      
     private func determineColor() -> Color {
-        return connectingNode == nodeNumber ? .pink :
-                !isAnchored ? .blue :
-                    Color.gray.opacity(0 + Double((abs(position.height) + abs(position.width)) / 99))
+        if connectingNode == nodeNumber {
+            return Color.pink
+        }
+        else if !isAnchored {
+            return Color.blue
+        }
+        else {
+            return
+                position == CGSize.zero ?
+                    Color.white.opacity(0) :
+                    Color.blue.opacity(0 + Double((abs(position.height) + abs(position.width)) / 99))
+        }
     }
     
     var body: some View {
-        LinearGradient(gradient: Gradient(colors: [.white, determineColor()]),
-                       startPoint: .topLeading,
-                       endPoint: .bottomTrailing)
-            .clipShape(Circle())
+        Circle().stroke(Color.black).frame(width: radius - 5 , height: radius - 5)
             .background(Image(systemName: "plus"))
-            
+            .overlay(LinearGradient(gradient: Gradient(colors: [
+                                                        // white of opacity 0 means: 'invisible'
+                                                        position == CGSize.zero ? Color.white.opacity(0) : Color.white,
+                                                           determineColor()]),
+                               startPoint: .topLeading,
+                               endPoint: .bottomTrailing
+
+                ))
+            .clipShape(/*@START_MENU_TOKEN@*/Circle()/*@END_MENU_TOKEN@*/).frame(width: radius, height: radius)
             // Child stores its center in anchor preference data,
             // for parent to later access.
             // NOTE: must come before .offset modifier
@@ -137,13 +151,12 @@ struct Ball: View {
                               value: .center, // center for Anchor<CGPoint>
                               transform: { [BallPreferenceData(viewIdx: self.nodeNumber, center: $0)] })
             .offset(x: self.position.width, y: self.position.height)
+            
             .gesture(DragGesture()
                         .onChanged { self.position = updatePosition(value: $0, position: self.previousPosition) }
                         .onEnded { (value: DragGesture.Value) in
                             if isAnchored {
-                                
                                 let minDistance: CGFloat = CGFloat(90)
-                                
                                 // Did we move the node enough for it to become a free, de-anchored node?
                                 let movedEnough: Bool =
                                     abs(value.translation.width) > minDistance ||
@@ -163,7 +176,10 @@ struct Ball: View {
                             }
                         })
             .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))
-            .frame(width: radius, height: radius)
+            
+//            .frame(width: radius, height: radius)
+
+            
             .onTapGesture(count: /*@START_MENU_TOKEN@*/1/*@END_MENU_TOKEN@*/, perform: {
                 if !isAnchored {
                     let existsConnectingNode: Bool = connectingNode != nil
@@ -225,7 +241,7 @@ struct ContentView: View {
                 ZStack {
                     ForEach(1 ..< nodeCount + 1, id: \.self) { nodeNumber -> Ball in
                         Ball(nodeNumber: nodeNumber,
-                            radius: 40,
+                            radius: 60,
                             connections: $connections,
                             nodeCount: $nodeCount,
                             connectingNode: $connectingNode)
