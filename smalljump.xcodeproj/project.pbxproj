@@ -12,6 +12,8 @@
 		2085B0F0254DBE1600080A64 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2085B0EF254DBE1600080A64 /* Assets.xcassets */; };
 		2085B0F3254DBE1600080A64 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2085B0F2254DBE1600080A64 /* Preview Assets.xcassets */; };
 		20A71F7B2552218000553F7E /* positive_ping.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 20A71F7A2552218000553F7E /* positive_ping.mp3 */; };
+		20A71F7F25523BE500553F7E /* connection_removed.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 20A71F7D25523BE500553F7E /* connection_removed.mp3 */; };
+		20A71F8025523BE500553F7E /* connection_added.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 20A71F7E25523BE500553F7E /* connection_added.mp3 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -22,6 +24,8 @@
 		2085B0F2254DBE1600080A64 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		2085B0F4254DBE1600080A64 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		20A71F7A2552218000553F7E /* positive_ping.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = positive_ping.mp3; sourceTree = SOURCE_ROOT; };
+		20A71F7D25523BE500553F7E /* connection_removed.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = connection_removed.mp3; path = ../../../../Downloads/connection_removed.mp3; sourceTree = "<group>"; };
+		20A71F7E25523BE500553F7E /* connection_added.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = connection_added.mp3; path = ../../../../Downloads/connection_added.mp3; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,6 +79,8 @@
 		20A71F782552202500553F7E /* Sounds */ = {
 			isa = PBXGroup;
 			children = (
+				20A71F7E25523BE500553F7E /* connection_added.mp3 */,
+				20A71F7D25523BE500553F7E /* connection_removed.mp3 */,
 				20A71F7A2552218000553F7E /* positive_ping.mp3 */,
 			);
 			path = Sounds;
@@ -138,6 +144,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				2085B0F3254DBE1600080A64 /* Preview Assets.xcassets in Resources */,
+				20A71F8025523BE500553F7E /* connection_added.mp3 in Resources */,
+				20A71F7F25523BE500553F7E /* connection_removed.mp3 in Resources */,
 				2085B0F0254DBE1600080A64 /* Assets.xcassets in Resources */,
 				20A71F7B2552218000553F7E /* positive_ping.mp3 in Resources */,
 			);

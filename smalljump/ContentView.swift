@@ -8,6 +8,7 @@
 import SwiftUI
 import AVFoundation
 
+
 /* ----------------------------------------------------------------
  UTILS
  ---------------------------------------------------------------- */
@@ -23,11 +24,11 @@ var audioPlayer: AVAudioPlayer?
 func playSound(sound: String, type: String) {
     if let path = Bundle.main.path(forResource: sound, ofType: type) {
         do {
-            log("Will try to play sound")
+            log("Will try to play sound.")
             audioPlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: path))
             audioPlayer?.play()
         } catch {
-            log("Unable to play sound")
+            log("Unable to play sound.")
         }
     }
 }
@@ -42,7 +43,6 @@ struct BallPreferenceData: Identifiable {
     let id = UUID()
     let viewIdx: Int
     let center: Anchor<CGPoint>
-//    let isEnabled: Bool
 }
 
 // Preference key for preference data
@@ -67,7 +67,6 @@ struct Connection: Identifiable, Equatable {
     let to: Int
     
     static func ==(lhs: Connection, rhs: Connection) -> Bool {
-//        return lhs.from == rhs.from && lhs.to == rhs.to
         // Edgeless connection:
         return lhs.from == rhs.from && lhs.to == rhs.to || lhs.from == rhs.to && lhs.to == rhs.from
     }
@@ -121,9 +120,7 @@ struct Ball: View {
     }
      
     private func determineColor() -> Color {
-//        return !isAnchored ? .blue : Color.gray.opacity(0 + Double((abs(position.height) + abs(position.width)) / 99))
-        return
-            connectingNode == nodeNumber ? .pink :
+        return connectingNode == nodeNumber ? .pink :
                 !isAnchored ? .blue :
                     Color.gray.opacity(0 + Double((abs(position.height) + abs(position.width)) / 99))
     }
@@ -145,8 +142,11 @@ struct Ball: View {
             .gesture(DragGesture()
                         .onChanged { self.position = updatePosition(value: $0, position: self.previousPosition) }
                         .onEnded { (value: DragGesture.Value) in
-                            if isAnchored { // only care about minDistance etc. if Anchorded
+                            if isAnchored {
+                                
                                 let minDistance: CGFloat = CGFloat(90)
+                                
+                                // Did we move the node enough for it to become a free, de-anchored node?
                                 let movedEnough: Bool =
                                     abs(value.translation.width) > minDistance ||
                                     abs(value.translation.height) > minDistance
@@ -154,8 +154,6 @@ struct Ball: View {
                                     self.isAnchored.toggle()
                                     self.previousPosition = self.position
                                     self.nodeCount += 1
-//                                    log("nodeCount is now: \(nodeCount)")
-//                                    log("idx is: \(nodeNumber)")
                                     playSound(sound: "positive_ping", type: "mp3")
                                 }
                                 else {
@@ -163,69 +161,45 @@ struct Ball: View {
                                 }
                             }
                             else {
-//                                log("is not anchored; will let move freely");
-                                self.previousPosition = self.position }
+                                self.previousPosition = self.position
+                            }
                         })
             .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))
             .frame(width: radius, height: radius)
             .onTapGesture(count: /*@START_MENU_TOKEN@*/1/*@END_MENU_TOKEN@*/, perform: {
                 if !isAnchored {
-                    log("nodeNumber \(nodeNumber) is not anchored, will allow connections ")
-                    log("node is not anchored, so will consider connections...")
                     let existsConnectingNode: Bool = connectingNode != nil
                     let isConnectingNode: Bool = existsConnectingNode && connectingNode == nodeNumber
                     
-                    // if no existing connecting node, make this node this cnode
+                    // Note: if no existing connecting node, make this node the connecting node
                     // ie user is attempting to create or remove a node
                     if !existsConnectingNode {
-                        log("rule 0: nodeNumber: \(nodeNumber)")
-//                        log("nodeNumber: \(nodeNumber)")
-                        self.connectingNode = self.nodeNumber  //self.nodeCount
+                        self.connectingNode = self.nodeNumber
                     }
                     else { // ie there is an connecting node:
-                        // Does this node already have a connection to the connection node
+                        let edge: Connection = Connection(from: connectingNode!, to: self.nodeNumber)
+                        let edgeAlreadyExists: Bool = connections.contains(edge)
                         
-                        // connection is by index, nodeNumber is by count
-                        
-//                        let edge1: Connection = Connection(from: connectingNode!, to: self.nodeNumber)
-//                        let edge2: Connection = Connection(from: self.nodeNumber, to: connectingNode!)
-                        let edge1: Connection = Connection(from: connectingNode! - 1, to: self.nodeNumber - 1)
-                        let edge2: Connection = Connection(from: self.nodeNumber - 1, to: connectingNode! - 1)
-                        
-                        
-                        let connectionAlreadyExists: Bool =
-                            connections.contains(edge1) || connections.contains(edge2)
-                        
-                        log("connectionAlreadyExists: \(connectionAlreadyExists)")
-                        log("connections.contains(edge1): \(connections.contains(edge1))")
-                        log("connections.contains(edge2): \(connections.contains(edge2))")
-                        
-                        
-                        // if exist cnode and I am the cnode, cancel ie set cnode=nil
+                        // if exist connecting node and I am the connecting node, cancel ie set connecting node=nil
                         if isConnectingNode {
-                            log("rule 1: nodeNumber: \(nodeNumber)")
                             self.connectingNode = nil
                         }
-                        // if existing cnode and I am NOT the cnode AND there already exists a connxn(cnode, me), remove the connection and set cnode=nil
-                        else if !isConnectingNode && connectionAlreadyExists {
-                            log("rule 2: nodeNumber: \(nodeNumber)")
-    //                        connections.removeAll(where: (connection: Connection) -> Bool in)
-                            let lessConnections = connections.filter { $0 != edge1 && $0 != edge2 }
-                            log("lessConnections: \(lessConnections)")
-                            self.connections = lessConnections
+                        // if existing connecting node and I am NOT the connecting node AND there already exists a connxn(connecting node, me),
+                        // remove the connection and set connecting node=nil
+                        else if !isConnectingNode && edgeAlreadyExists {
+                            self.connections = connections.filter { $0 != edge }
                             self.connectingNode = nil
+                            playSound(sound: "connection_removed", type: "mp3")
                         }
-                        // if existing cnode and I am NOT the cnode AND there DOES NOT exist a connxn(cnode, me), add the connection and set cnode=nil
-                        else if !isConnectingNode && !connectionAlreadyExists {
-                            log("rule 3: nodeNumber: \(nodeNumber)")
-                            log("connections was: \(connections)")
-                            self.connections.append(edge1)
-                            log("connections is now: \(connections)")
+                        // if existing connecting node and I am NOT the connecting node AND there DOES NOT exist a connxn(connecting node, me),
+                        // add the connection and set connecting node=nil
+                        else if !isConnectingNode && !edgeAlreadyExists {
+                            self.connections.append(edge)
                             self.connectingNode = nil
+                            playSound(sound: "connection_added", type: "mp3")
                         }
                     }
-                    }
-
+                }
             })
     }
 }
@@ -241,28 +215,16 @@ struct ContentView: View {
     
     // all existings edges
     @State public var connections: [Connection] = []
-    
+
+    // particular node to which we are adding/removing connections
     @State public var connectingNode: Int? = nil
 
-    // everytime the data changes, this exact code is run again with the data
-    // but any components with local state will retain their local state, e.g. their position
     var body: some View {
-        // Hack for corner alignment
-        
-//        let conn1 = Connection(from: 1, to: 2)
-//        let conn2 = Connection(from: 2, to: 3)
-//        let conn3 = Connection(from: 1, to: 2)
-//        let conn4 = Connection(from: 2, to: 1)
-//        log("should be false: conn1 == conn2: \(conn1 == conn2)")
-//        log("should be true: conn1 == conn3: \(conn1 == conn3)")
-//        log("should be true: conn1 == conn4: \(conn1 == conn4)")
-        
-        VStack { // HACK for bottom right corner alignment
+        VStack { // HACK: bottom right corner alignment
             Spacer()
             HStack {
                 Spacer()
                 ZStack {
-                    log("nodeCount: \(nodeCount)")
                     ForEach(1 ..< nodeCount + 1, id: \.self) { nodeNumber -> Ball in
                         Ball(nodeNumber: nodeNumber,
                             radius: 40,
@@ -273,45 +235,18 @@ struct ContentView: View {
                 }
             }
         }
-        
-        // do nothing for now
         .backgroundPreferenceValue(BallPreferenceKey.self) { (preferences: [BallPreferenceData]) in
             if connections.count >= 1 && nodeCount >= 2 {
                 GeometryReader { (geometry: GeometryProxy) in
                     ForEach(connections, content: { (connection: Connection) in
-                        log("connection.to: \(connection.to)")
-                        log("connection.from: \(connection.from)")
-                        
-                        // need make these one less
-                        
-                        let toPref: BallPreferenceData = preferences[connection.to]
-                        let fromPref: BallPreferenceData = preferences[connection.from]
-//                        let toPref: BallPreferenceData = preferences[connection.to - 1]
-//                        let fromPref: BallPreferenceData = preferences[connection.from - 1]
-                        log("toPref: \(toPref)")
-                        log("fromPref: \(fromPref)")
-                        
+                        // Note: we must convert the node number to an index position
+                        let toPref: BallPreferenceData = preferences[connection.to - 1]
+                        let fromPref: BallPreferenceData = preferences[connection.from - 1]
                         line(from: geometry[toPref.center], to: geometry[fromPref.center])
                         
                     })
                 }
             }
-            
-            
-            
-            
-//            if connections.count >= 1 && nodeCount >= 2 {
-//                GeometryReader { (geometry: GeometryProxy) in
-//                    ForEach(connections, content: { (connection: Connection) in
-//                        let toPref: BallPreferenceData = preferences[connection.to]
-//                        let fromPref: BallPreferenceData = preferences[connection.from]
-//                        if toPref.isEnabled && fromPref.isEnabled {
-//                            line(from: geometry[toPref.center],
-//                                 to: geometry[fromPref.center])
-//                        }
-//                    })
-//                }
-//            }
         }
     }
 }
