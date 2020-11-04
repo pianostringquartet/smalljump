@@ -24,7 +24,6 @@ var audioPlayer: AVAudioPlayer?
 func playSound(sound: String, type: String) {
     if let path = Bundle.main.path(forResource: sound, ofType: type) {
         do {
-            log("Will try to play sound.")
             audioPlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: path))
             audioPlayer?.play()
         } catch {
@@ -98,7 +97,6 @@ func updatePosition(value: DragGesture.Value, position: CGSize) -> CGSize {
 }
 
 struct Ball: View {
-    // ie balls start out at .zero
     @State private var position = CGSize.zero
     @State private var previousPosition = CGSize.zero
     
