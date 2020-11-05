@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -14,6 +14,7 @@
 		20A71F7B2552218000553F7E /* positive_ping.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 20A71F7A2552218000553F7E /* positive_ping.mp3 */; };
 		20A71F7F25523BE500553F7E /* connection_removed.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 20A71F7D25523BE500553F7E /* connection_removed.mp3 */; };
 		20A71F8025523BE500553F7E /* connection_added.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 20A71F7E25523BE500553F7E /* connection_added.mp3 */; };
+		20B2923B255371D8009074A2 /* Introspect in Frameworks */ = {isa = PBXBuildFile; productRef = 20B2923A255371D8009074A2 /* Introspect */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,6 +34,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				20B2923B255371D8009074A2 /* Introspect in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -102,6 +104,9 @@
 			dependencies = (
 			);
 			name = smalljump;
+			packageProductDependencies = (
+				20B2923A255371D8009074A2 /* Introspect */,
+			);
 			productName = smalljump;
 			productReference = 2085B0E8254DBE1300080A64 /* smalljump.app */;
 			productType = "com.apple.product-type.application";
@@ -129,6 +134,9 @@
 				Base,
 			);
 			mainGroup = 2085B0DF254DBE1300080A64;
+			packageReferences = (
+				20B29239255371D8009074A2 /* XCRemoteSwiftPackageReference "SwiftUI-Introspect" */,
+			);
 			productRefGroup = 2085B0E9254DBE1300080A64 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -348,6 +356,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		20B29239255371D8009074A2 /* XCRemoteSwiftPackageReference "SwiftUI-Introspect" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/siteline/SwiftUI-Introspect.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.1.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		20B2923A255371D8009074A2 /* Introspect */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 20B29239255371D8009074A2 /* XCRemoteSwiftPackageReference "SwiftUI-Introspect" */;
+			productName = Introspect;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 2085B0E0254DBE1300080A64 /* Project object */;
 }
