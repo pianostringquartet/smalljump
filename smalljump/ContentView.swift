@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AVFoundation
+import CoreData
 
 /* ----------------------------------------------------------------
  UTILS
@@ -98,17 +99,16 @@ func updatePosition(value: DragGesture.Value, position: CGSize) -> CGSize {
 struct Ball: View {
     @State private var position = CGSize.zero
     @State private var previousPosition = CGSize.zero
+    
     @State private var isAnchored: Bool = true // true just iff ball has NEVER 'been moved enough'
         
     @Binding public var connections: [Connection]
     @Binding public var nodeCount: Int
     @Binding public var connectingNode: Int?
-    
-    
+        
     // Node info
     @State private var info: UUID = UUID()
     @State private var showPopover: Bool = false
-    @State private var userLabel: String = "Some info..."
     
     let nodeNumber: Int
     let radius: CGFloat
@@ -235,9 +235,28 @@ struct Ball: View {
  CONTENT VIEW
  ---------------------------------------------------------------- */
 
+
+// method for saving
+//func saveContext() {
+//  do {
+//    try managedObjectContext.save()
+//  } catch {
+//    print("Error saving managed object context: \(error)")
+//  }
+//}
+
+
 struct ContentView: View {
-    @State private var nodeCount: Int = 1 // start with one node
+    @Environment(\.managedObjectContext) var moc
+
+    // from: https://www.hackingwithswift.com/books/ios-swiftui/how-to-combine-core-data-and-swiftui
+    @FetchRequest(entity: Student.entity(), sortDescriptors: [])
     
+    var students: FetchedResults<Student>
+
+
+    @State private var nodeCount: Int = 1 // start with one node
+
     // all existings edges
     @State public var connections: [Connection] = []
 
@@ -245,38 +264,71 @@ struct ContentView: View {
     @State public var connectingNode: Int? = nil
 
     var body: some View {
-        VStack { // HACK: bottom right corner alignment
-            Spacer()
-            HStack {
-                Spacer()
-                ZStack {
-                    ForEach(1 ..< nodeCount + 1, id: \.self) { nodeNumber -> Ball in
-                        Ball(nodeNumber: nodeNumber,
-                            radius: 60,
-                            connections: $connections,
-                            nodeCount: $nodeCount,
-                            connectingNode: $connectingNode)
-                        
-                    }.padding(.trailing, 30).padding(.bottom, 30)
-                }
+        VStack {
+            List {
+               ForEach(students, id: \.id) { student in
+//                ForEach(students, id: \.id) { (student: Student) in
+                   Text(student.name ?? "Unknown")
+               }
+                
             }
-        }
-        .backgroundPreferenceValue(BallPreferenceKey.self) { (preferences: [BallPreferenceData]) in
-            if connections.count >= 1 && nodeCount >= 2 {
-                GeometryReader { (geometry: GeometryProxy) in
-                    ForEach(connections, content: { (connection: Connection) in
-                        // Note: we must convert the node number to an index position
-                        let toPref: BallPreferenceData = preferences[connection.to - 1]
-                        let fromPref: BallPreferenceData = preferences[connection.from - 1]
-                        line(from: geometry[toPref.center], to: geometry[fromPref.center])
-                        
-                    })
-                }
+            Button("Add") {
+                let firstNames = ["Ginny", "Harry", "Hermione", "Luna", "Ron"]
+                let lastNames = ["Granger", "Lovegood", "Potter", "Weasley"]
+
+                let chosenFirstName = firstNames.randomElement()!
+                let chosenLastName = lastNames.randomElement()!
+
+                // we give the CD-defined model the managedObjectContext key
+                let student = Student(context: self.moc)
+                
+                student.id = UUID()
+                student.name = "\(chosenFirstName) \(chosenLastName)"
+                
+                log("about to try to save")
+                
+                try? self.moc.save()
             }
-        }
+            
+
+               }
+
+//        VStack { // HACK: bottom right corner alignment
+//
+//
+//
+//            Spacer()
+//            HStack {
+//                Spacer()
+//                ZStack {
+//                    ForEach(1 ..< nodeCount + 1, id: \.self) { nodeNumber -> Ball in
+//                        Ball(nodeNumber: nodeNumber,
+//                            radius: 60,
+//                            connections: $connections,
+//                            nodeCount: $nodeCount,
+//                            connectingNode: $connectingNode)
+//
+//                    }.padding(.trailing, 30).padding(.bottom, 30)
+//                }
+//            }
+//        }
+//        .backgroundPreferenceValue(BallPreferenceKey.self) { (preferences: [BallPreferenceData]) in
+//            if connections.count >= 1 && nodeCount >= 2 {
+//                GeometryReader { (geometry: GeometryProxy) in
+//                    ForEach(connections, content: { (connection: Connection) in
+//                        // Note: we must convert the node number to an index position
+//                        let toPref: BallPreferenceData = preferences[connection.to - 1]
+//                        let fromPref: BallPreferenceData = preferences[connection.from - 1]
+//                        line(from: geometry[toPref.center], to: geometry[fromPref.center])
+//
+//                    })
+//                }
+//            }
+//        }
     }
 }
-    
+
+
 
 
 /* ----------------------------------------------------------------
@@ -285,6 +337,87 @@ struct ContentView: View {
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
+        
         ContentView()
+            // note the use of the `preview` property
+            .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+        
+        
+//        ContentViewExample().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
     }
 }
+
+
+/* ----------------------------------------------------------------
+ EXAMPLE FOR ITEMS
+ ---------------------------------------------------------------- */
+
+//struct ContentView: View {
+struct ContentViewExample: View {
+    @Environment(\.managedObjectContext) private var viewContext
+
+    @FetchRequest(
+        sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
+        animation: .default)
+    private var items: FetchedResults<Item>
+
+    var body: some View {
+        VStack (spacing: 20) {
+            Button(action: addItem) {
+                Label("Add Item", systemImage: "plus")
+            }
+            EditButton()
+            List {
+                ForEach(items) { item in
+                    Text("Item at \(item.timestamp!, formatter: itemFormatter)")
+                }
+                .onDelete(perform: deleteItems)
+            }
+        }
+        
+    }
+
+    private func addItem() {
+        withAnimation {
+            let newItem = Item(context: viewContext)
+            newItem.timestamp = Date()
+
+            do {
+                try viewContext.save()
+            } catch {
+                // Replace this implementation with code to handle the error appropriately.
+                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
+                let nsError = error as NSError
+                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+            }
+        }
+    }
+
+    private func deleteItems(offsets: IndexSet) {
+        withAnimation {
+            offsets.map { items[$0] }.forEach(viewContext.delete)
+
+            do {
+                try viewContext.save()
+            } catch {
+                // Replace this implementation with code to handle the error appropriately.
+                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
+                let nsError = error as NSError
+                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+            }
+        }
+    }
+}
+
+private let itemFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.dateStyle = .short
+    formatter.timeStyle = .medium
+    return formatter
+}()
+
+//struct ContentView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+//    }
+//}

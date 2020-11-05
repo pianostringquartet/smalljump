@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		204108682554659900932502 /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 204108672554659900932502 /* Persistence.swift */; };
+		204108702554692E00932502 /* smalljump.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 2041086E2554692E00932502 /* smalljump.xcdatamodeld */; };
 		2085B0EC254DBE1300080A64 /* smalljumpApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2085B0EB254DBE1300080A64 /* smalljumpApp.swift */; };
 		2085B0EE254DBE1300080A64 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2085B0ED254DBE1300080A64 /* ContentView.swift */; };
 		2085B0F0254DBE1600080A64 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2085B0EF254DBE1600080A64 /* Assets.xcassets */; };
@@ -18,6 +20,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		204108672554659900932502 /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
+		2041086F2554692E00932502 /* smalljump.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = smalljump.xcdatamodel; sourceTree = "<group>"; };
 		2085B0E8254DBE1300080A64 /* smalljump.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = smalljump.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2085B0EB254DBE1300080A64 /* smalljumpApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = smalljumpApp.swift; sourceTree = "<group>"; };
 		2085B0ED254DBE1300080A64 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -60,12 +64,14 @@
 		2085B0EA254DBE1300080A64 /* smalljump */ = {
 			isa = PBXGroup;
 			children = (
-				20A71F782552202500553F7E /* Sounds */,
 				2085B0EB254DBE1300080A64 /* smalljumpApp.swift */,
 				2085B0ED254DBE1300080A64 /* ContentView.swift */,
 				2085B0EF254DBE1600080A64 /* Assets.xcassets */,
+				204108672554659900932502 /* Persistence.swift */,
 				2085B0F4254DBE1600080A64 /* Info.plist */,
+				20A71F782552202500553F7E /* Sounds */,
 				2085B0F1254DBE1600080A64 /* Preview Content */,
+				2041086E2554692E00932502 /* smalljump.xcdatamodeld */,
 			);
 			path = smalljump;
 			sourceTree = "<group>";
@@ -167,7 +173,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				2085B0EE254DBE1300080A64 /* ContentView.swift in Sources */,
+				204108682554659900932502 /* Persistence.swift in Sources */,
 				2085B0EC254DBE1300080A64 /* smalljumpApp.swift in Sources */,
+				204108702554692E00932502 /* smalljump.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -375,6 +383,19 @@
 			productName = Introspect;
 		};
 /* End XCSwiftPackageProductDependency section */
+
+/* Begin XCVersionGroup section */
+		2041086E2554692E00932502 /* smalljump.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				2041086F2554692E00932502 /* smalljump.xcdatamodel */,
+			);
+			currentVersion = 2041086F2554692E00932502 /* smalljump.xcdatamodel */;
+			path = smalljump.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 2085B0E0254DBE1300080A64 /* Project object */;
 }

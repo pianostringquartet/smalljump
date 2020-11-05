@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17192" systemVersion="19H2" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="Graph" representedClassName="Graph" syncable="YES" codeGenerationType="class">
+        <attribute name="connectingNode" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="connections" optional="YES" attributeType="Binary"/>
+        <attribute name="isAnchored" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="nodeCount" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="nodeInfo" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="nodeNumber" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="position" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="radius" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="showPopover" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+    </entity>
+    <entity name="Item" representedClassName="Item" syncable="YES" codeGenerationType="class">
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
+    <entity name="Position" representedClassName="Position" syncable="YES" codeGenerationType="class">
+        <attribute name="x" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="y" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+    </entity>
+    <entity name="Student" representedClassName="Student" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+    </entity>
+    <elements>
+        <element name="Graph" positionX="-63" positionY="-18" width="128" height="178"/>
+        <element name="Position" positionX="-63" positionY="54" width="128" height="73"/>
+        <element name="Student" positionX="-36" positionY="72" width="128" height="73"/>
+        <element name="Item" positionX="9" positionY="135" width="128" height="58"/>
+    </elements>
+</model>

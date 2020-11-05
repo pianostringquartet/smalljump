@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17192" systemVersion="19H2" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="Candy" representedClassName="Candy" syncable="YES" codeGenerationType="class">
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <relationship name="origin" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Country" inverseName="candy" inverseEntity="Country"/>
+    </entity>
+    <entity name="Connection" representedClassName="Connection" syncable="YES" codeGenerationType="class">
+        <attribute name="from" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="to" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="graph" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Graph" inverseName="connections" inverseEntity="Graph"/>
+    </entity>
+    <entity name="Country" representedClassName="Country" syncable="YES" codeGenerationType="class">
+        <attribute name="fullName" optional="YES" attributeType="String"/>
+        <attribute name="shortName" optional="YES" attributeType="String"/>
+        <relationship name="candy" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Candy" inverseName="origin" inverseEntity="Candy"/>
+    </entity>
+    <entity name="Graph" representedClassName="Graph" syncable="YES" codeGenerationType="class">
+        <attribute name="nodeCount" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="connections" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Connection" inverseName="graph" inverseEntity="Connection"/>
+        <relationship name="nodes" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Node" inverseName="graph" inverseEntity="Node"/>
+    </entity>
+    <entity name="Item" representedClassName="Item" syncable="YES" codeGenerationType="class">
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
+    <entity name="Node" representedClassName="Node" syncable="YES" codeGenerationType="class">
+        <attribute name="info" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isAnchored" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="nodeNumber" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="positionX" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="positionY" optional="YES" attributeType="Float" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="radius" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <relationship name="graph" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Graph" inverseName="nodes" inverseEntity="Graph"/>
+    </entity>
+    <entity name="Student" representedClassName="Student" syncable="YES" codeGenerationType="class">
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+    </entity>
+    <elements>
+        <element name="Item" positionX="-63" positionY="-18" width="128" height="58"/>
+        <element name="Student" positionX="-63" positionY="-9" width="128" height="73"/>
+        <element name="Graph" positionX="152.40234375" positionY="-53.65234375" width="128" height="28"/>
+        <element name="Node" positionX="34.91796875" positionY="-118.8125" width="128" height="28"/>
+        <element name="Connection" positionX="77.48046875" positionY="219.2578125" width="128" height="28"/>
+        <element name="Country" positionX="141.5546875" positionY="62.8203125" width="128" height="28"/>
+        <element name="Candy" positionX="-118.39453125" positionY="179.359375" width="128" height="28"/>
+    </elements>
+</model>
