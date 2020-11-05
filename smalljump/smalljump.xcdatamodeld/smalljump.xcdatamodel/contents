@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17192" systemVersion="19H2" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
-    <entity name="Candy" representedClassName="Candy" syncable="YES" codeGenerationType="class">
+    <entity name="Candy" representedClassName="Candy" syncable="YES">
         <attribute name="name" optional="YES" attributeType="String"/>
         <relationship name="origin" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Country" inverseName="candy" inverseEntity="Country"/>
     </entity>
@@ -10,7 +10,7 @@
         <attribute name="to" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <relationship name="graph" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Graph" inverseName="connections" inverseEntity="Graph"/>
     </entity>
-    <entity name="Country" representedClassName="Country" syncable="YES" codeGenerationType="class">
+    <entity name="Country" representedClassName="Country" syncable="YES">
         <attribute name="fullName" optional="YES" attributeType="String"/>
         <attribute name="shortName" optional="YES" attributeType="String"/>
         <relationship name="candy" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Candy" inverseName="origin" inverseEntity="Candy"/>
@@ -42,7 +42,7 @@
         <element name="Graph" positionX="152.40234375" positionY="-53.65234375" width="128" height="28"/>
         <element name="Node" positionX="34.91796875" positionY="-118.8125" width="128" height="28"/>
         <element name="Connection" positionX="77.48046875" positionY="219.2578125" width="128" height="28"/>
-        <element name="Country" positionX="141.5546875" positionY="62.8203125" width="128" height="28"/>
-        <element name="Candy" positionX="-118.39453125" positionY="179.359375" width="128" height="28"/>
+        <element name="Country" positionX="141.5546875" positionY="62.8203125" width="128" height="88"/>
+        <element name="Candy" positionX="-118.39453125" positionY="179.359375" width="128" height="73"/>
     </elements>
 </model>

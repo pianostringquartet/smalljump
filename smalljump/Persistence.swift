@@ -39,7 +39,7 @@ struct PersistenceController {
         
         do {
             // oh god, this is really bad -- is this supposed to save the newItems we created,
-            // because we passed those items 
+            // because we passed those items
             try viewContext.save()
         } catch {
             // Replace this implementation with code to handle the error appropriately.
