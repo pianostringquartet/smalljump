@@ -248,14 +248,43 @@ func updatePosition(value: DragGesture.Value, position: CGSize) -> CGSize {
 //  }
 //}
 
-//struct TestView: View {
-//
-//
-//
-//    var body: sme View {
-//
-//    }
-//}
+struct NodeList: View {
+
+    @Environment(\.managedObjectContext) var moc
+    
+//    @State private var nodes: [Node];
+    var nodes: FetchedResults<Node>
+    
+    init(nodes: FetchedResults<Node>) {
+        self.nodes = nodes
+    }
+        
+    
+    var body: some View {
+        ForEach(nodes, id: \.self) { (node: Node) in
+                
+                // we're able to print this out etc. :)
+                log("there was a node?")
+                log("node: \(node)")
+                Text("node number: \(node.nodeNumber)")
+        }.onDelete { indexSet in
+            for index in indexSet {
+                moc.delete(nodes[index])
+//                        try? moc.save()
+            }
+            do {
+                log("about to save after removing a candy")
+                try moc.save()
+            } catch {
+                log("failed trying to save after removing a candy")
+                log(error.localizedDescription)
+//                    }
+        }
+    }
+    }
+}
+
+
 
 
 struct ContentView: View {
@@ -287,55 +316,36 @@ struct ContentView: View {
     
     // FetchedResults is a collection type, can be used in `List` etc.
     
-    @FetchRequest(entity: Node.entity(),
-                  // i.e. want to retrieve them in a consistent order, just like when they were created
-                  // could also do this sorting outside or elsewhere?
-                  sortDescriptors: [NSSortDescriptor(keyPath: \Node.nodeNumber, ascending: true)])
-    var nodes: FetchedResults<Node>
+    // if connections are still stored separately...
+    @FetchRequest(entity: Connection.entity(),
+                  sortDescriptors: [])
+    var connections: FetchedResults<Connection>
     
-
     var body: some View {
-        
         VStack {
             List {
-//                ForEach(candies, id: \.self) { candy in
-//                        Text(candy.wrappedName)
-//                }
-//                .onDelete { indexSet in
-//                    for index in indexSet {
-//                        log("will remove candy index: \(index)")
-//                        moc.delete(candies[index])
-//                    }
-//                    do {
-//                        log("about to save after removing a candy")
-//                        try moc.save()
-//                    } catch {
-//                        log("failed trying to save after removing a candy")
-//                        log(error.localizedDescription)
-//                    }
-//                }
                 log("nodes: \(nodes)")
-                
-                ForEach(nodes, id: \.self) { (node: Node) in
-                        
-                        // we're able to print this out etc. :)
-                        log("there was a node?")
-                        log("node: \(node)")
-                        Text("node number: \(node.nodeNumber)")
-                }.onDelete { indexSet in
-                    for index in indexSet {
-                        moc.delete(nodes[index])
-                        try? moc.save()
-                    }
+                NodeList(nodes: nodes)
+//                ForEach(nodes, id: \.self) { (node: Node) in
+//
+//                        // we're able to print this out etc. :)
+//                        log("there was a node?")
+//                        log("node: \(node)")
+//                        Text("node number: \(node.nodeNumber)")
+//                }.onDelete { indexSet in
+//                    for index in indexSet {
+//                        moc.delete(nodes[index])
+////                        try? moc.save()
+//                    }
 //                    do {
 //                        log("about to save after removing a candy")
 //                        try moc.save()
 //                    } catch {
 //                        log("failed trying to save after removing a candy")
 //                        log(error.localizedDescription)
-//                    }
-                }
-            }
+////                    }
+//                }
+//            }
         }
 
             Button("Destroy first node") {
@@ -405,7 +415,7 @@ struct ContentView: View {
                 
             }
         }
-        
+    }
         
 //        VStack {
 //            List {
