@@ -248,18 +248,29 @@ func updatePosition(value: DragGesture.Value, position: CGSize) -> CGSize {
 //  }
 //}
 
+//struct TestView: View {
+//
+//
+//
+//    var body: sme View {
+//
+//    }
+//}
+
 
 struct ContentView: View {
+    
+    // must come before any descriptions etc.
     @Environment(\.managedObjectContext) var moc
 
     // from: https://www.hackingwithswift.com/books/ios-swiftui/how-to-combine-core-data-and-swiftui
     @FetchRequest(entity: Student.entity(), sortDescriptors: [])
-    
     var students: FetchedResults<Student>
     
 //    @FetchRequest(entity: Connection.entity(), sortDescriptors: [])
 //    var connections: FetchedResults<Connection>
 
+    
     @State private var nodeCount: Int = 1 // start with one node
 
     // all existings edges
@@ -268,49 +279,130 @@ struct ContentView: View {
     // particular node to which we are adding/removing connections
     @State public var connectingNode: Int? = nil
 
-//    @Environment(\.managedObjectContext) var moc
-    @FetchRequest(entity: Country.entity(), sortDescriptors: []) var countries: FetchedResults<Country>
+    @FetchRequest(entity: Node.entity(),
+                  // i.e. want to retrieve them in a consistent order, just like when they were created
+                  // could also do this sorting outside or elsewhere?
+                  sortDescriptors: [NSSortDescriptor(keyPath: \Node.nodeNumber, ascending: true)])
+    var nodes: FetchedResults<Node>
     
+    // FetchedResults is a collection type, can be used in `List` etc.
     
+    @FetchRequest(entity: Node.entity(),
+                  // i.e. want to retrieve them in a consistent order, just like when they were created
+                  // could also do this sorting outside or elsewhere?
+                  sortDescriptors: [NSSortDescriptor(keyPath: \Node.nodeNumber, ascending: true)])
+    var nodes: FetchedResults<Node>
+    
+
     var body: some View {
         
         VStack {
             List {
-                ForEach(countries, id: \.self) { country in
-                    Section(header: Text(country.wrappedFullName)) {
-                        ForEach(country.candyArray, id: \.self) { candy in
-                            Text(candy.wrappedName)
-                        }
+//                ForEach(candies, id: \.self) { candy in
+//                        Text(candy.wrappedName)
+//                }
+//                .onDelete { indexSet in
+//                    for index in indexSet {
+//                        log("will remove candy index: \(index)")
+//                        moc.delete(candies[index])
+//                    }
+//                    do {
+//                        log("about to save after removing a candy")
+//                        try moc.save()
+//                    } catch {
+//                        log("failed trying to save after removing a candy")
+//                        log(error.localizedDescription)
+//                    }
+//                }
+                log("nodes: \(nodes)")
+                
+                ForEach(nodes, id: \.self) { (node: Node) in
+                        
+                        // we're able to print this out etc. :)
+                        log("there was a node?")
+                        log("node: \(node)")
+                        Text("node number: \(node.nodeNumber)")
+                }.onDelete { indexSet in
+                    for index in indexSet {
+                        moc.delete(nodes[index])
+                        try? moc.save()
                     }
+//                    do {
+//                        log("about to save after removing a candy")
+//                        try moc.save()
+//                    } catch {
+//                        log("failed trying to save after removing a candy")
+//                        log(error.localizedDescription)
+//                    }
                 }
             }
+        }
 
-            Button("Add") {
-                let candy1 = Candy(context: self.moc)
-                candy1.name = "Mars"
-                candy1.origin = Country(context: self.moc)
-                candy1.origin?.shortName = "UK"
-                candy1.origin?.fullName = "United Kingdom"
+            Button("Destroy first node") {
+                if nodes.first != nil {
+                    moc.delete(nodes[0])
+                    try? moc.save()
+                }
+            }
+            Button("Change first node's number") {
+                if nodes.first != nil {
+                    nodes[0].nodeNumber = 12
+                    try? moc.save()
+                }
+            }
+        
+            Button("Add") { // pressed several times :)
+                
+                log("will try to create a node:")
+                
+                // I don't want to make an object like this!
+                // I want to do `Node(info, isAnchored, nodeNumber, positionX, ...)` etc.
+                // make a separate function?
+                let node1: Node = Node(context: self.moc)
+                node1.info = UUID()
+                node1.isAnchored = true
+                node1.nodeNumber = Int32.random(in: 0 ..< 100) //1
+                node1.positionX = Float(0)
+                node1.positionY = Float(0)
+                node1.radius = 30
+                
+                // First of all -- if you don't need the graph, don't have the graph yet
+                // creating the graph
+                // Don't need to create the graph until
+//                node1.graph = Graph(context: self.moc)
+//                node1.graph?.id = UUID()
+//                node1.graph?.nodeCount = 1
+                
+                
+                
+                // ah, this has to be a set? it's an NSSet?
+                // and presumably the set can be empty, right?
+//                node1.connection = Connection(context: self.moc)
+//                node1.connection?.id = UUID()
+//                node1.connection?.from = 1
+//                node1.connection?.to = 2
+                
+                
+                // creating at least one connection
+                
+                
+                
+                
+//                let graph1: Graph = Graph(context: self.moc)
+//                graph1.id = UUID()
+//                graph1.nodeCount = 1
+//                graph1.connections = Connection(
+//                graph1
+//                graph1
 
-                let candy2 = Candy(context: self.moc)
-                candy2.name = "KitKat"
-                candy2.origin = Country(context: self.moc)
-                candy2.origin?.shortName = "UK"
-                candy2.origin?.fullName = "United Kingdom"
-
-                let candy3 = Candy(context: self.moc)
-                candy3.name = "Twix"
-                candy3.origin = Country(context: self.moc)
-                candy3.origin?.shortName = "UK"
-                candy3.origin?.fullName = "United Kingdom"
-
-                let candy4 = Candy(context: self.moc)
-                candy4.name = "Toblerone"
-                candy4.origin = Country(context: self.moc)
-                candy4.origin?.shortName = "CH"
-                candy4.origin?.fullName = "Switzerland"
-
-                try? self.moc.save()
+                do {
+                    log("will attempt save...")
+                      try self.moc.save()
+                  } catch {
+                    log("failed to save")
+                    log("error was: \(error.localizedDescription)")
+                  }
+                
             }
         }
         
@@ -373,7 +465,7 @@ struct ContentView: View {
 //                }
 //            }
 //        }
-    }
+//    }
 }
 
 
@@ -394,78 +486,3 @@ struct ContentView_Previews: PreviewProvider {
 //        ContentViewExample().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
     }
 }
-
-
-/* ----------------------------------------------------------------
- EXAMPLE FOR ITEMS
- ---------------------------------------------------------------- */
-
-//struct ContentView: View {
-struct ContentViewExample: View {
-    @Environment(\.managedObjectContext) private var viewContext
-
-    @FetchRequest(
-        sortDescriptors: [NSSortDescriptor(keyPath: \Item.timestamp, ascending: true)],
-        animation: .default)
-    private var items: FetchedResults<Item>
-
-    var body: some View {
-        VStack (spacing: 20) {
-            Button(action: addItem) {
-                Label("Add Item", systemImage: "plus")
-            }
-            EditButton()
-            List {
-                ForEach(items) { item in
-                    Text("Item at \(item.timestamp!, formatter: itemFormatter)")
-                }
-                .onDelete(perform: deleteItems)
-            }
-        }
-        
-    }
-
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
-        }
-    }
-
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            offsets.map { items[$0] }.forEach(viewContext.delete)
-
-            do {
-                try viewContext.save()
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
-        }
-    }
-}
-
-private let itemFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.dateStyle = .short
-    formatter.timeStyle = .medium
-    return formatter
-}()
-
-//struct ContentView_Previews: PreviewProvider {
-//    static var previews: some View {
-//        ContentView().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
-//    }
-//}

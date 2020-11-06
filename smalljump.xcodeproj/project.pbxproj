@@ -11,12 +11,6 @@
 		200D3E4825548C6E0050470C /* Country+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200D3E3E25548C6E0050470C /* Country+CoreDataProperties.swift */; };
 		200D3E4925548C6E0050470C /* Candy+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200D3E3F25548C6E0050470C /* Candy+CoreDataClass.swift */; };
 		200D3E4A25548C6E0050470C /* Candy+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200D3E4025548C6E0050470C /* Candy+CoreDataProperties.swift */; };
-		200D3E4B25548C6E0050470C /* Connection+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200D3E4125548C6E0050470C /* Connection+CoreDataClass.swift */; };
-		200D3E4C25548C6E0050470C /* Connection+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200D3E4225548C6E0050470C /* Connection+CoreDataProperties.swift */; };
-		200D3E4D25548C6E0050470C /* Graph+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200D3E4325548C6E0050470C /* Graph+CoreDataClass.swift */; };
-		200D3E4E25548C6E0050470C /* Graph+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200D3E4425548C6E0050470C /* Graph+CoreDataProperties.swift */; };
-		200D3E4F25548C6E0050470C /* Node+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200D3E4525548C6E0050470C /* Node+CoreDataClass.swift */; };
-		200D3E5025548C6E0050470C /* Node+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200D3E4625548C6E0050470C /* Node+CoreDataProperties.swift */; };
 		204108682554659900932502 /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 204108672554659900932502 /* Persistence.swift */; };
 		204108702554692E00932502 /* smalljump.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 2041086E2554692E00932502 /* smalljump.xcdatamodeld */; };
 		2085B0EC254DBE1300080A64 /* smalljumpApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2085B0EB254DBE1300080A64 /* smalljumpApp.swift */; };
@@ -34,12 +28,6 @@
 		200D3E3E25548C6E0050470C /* Country+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Country+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		200D3E3F25548C6E0050470C /* Candy+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Candy+CoreDataClass.swift"; sourceTree = "<group>"; };
 		200D3E4025548C6E0050470C /* Candy+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Candy+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		200D3E4125548C6E0050470C /* Connection+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Connection+CoreDataClass.swift"; sourceTree = "<group>"; };
-		200D3E4225548C6E0050470C /* Connection+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Connection+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		200D3E4325548C6E0050470C /* Graph+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Graph+CoreDataClass.swift"; sourceTree = "<group>"; };
-		200D3E4425548C6E0050470C /* Graph+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Graph+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		200D3E4525548C6E0050470C /* Node+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Node+CoreDataClass.swift"; sourceTree = "<group>"; };
-		200D3E4625548C6E0050470C /* Node+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Node+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		204108672554659900932502 /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
 		2041086F2554692E00932502 /* smalljump.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = smalljump.xcdatamodel; sourceTree = "<group>"; };
 		2085B0E8254DBE1300080A64 /* smalljump.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = smalljump.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -72,12 +60,6 @@
 				200D3E3E25548C6E0050470C /* Country+CoreDataProperties.swift */,
 				200D3E3F25548C6E0050470C /* Candy+CoreDataClass.swift */,
 				200D3E4025548C6E0050470C /* Candy+CoreDataProperties.swift */,
-				200D3E4125548C6E0050470C /* Connection+CoreDataClass.swift */,
-				200D3E4225548C6E0050470C /* Connection+CoreDataProperties.swift */,
-				200D3E4325548C6E0050470C /* Graph+CoreDataClass.swift */,
-				200D3E4425548C6E0050470C /* Graph+CoreDataProperties.swift */,
-				200D3E4525548C6E0050470C /* Node+CoreDataClass.swift */,
-				200D3E4625548C6E0050470C /* Node+CoreDataProperties.swift */,
 				2085B0EA254DBE1300080A64 /* smalljump */,
 				2085B0E9254DBE1300080A64 /* Products */,
 			);
@@ -203,19 +185,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				2085B0EE254DBE1300080A64 /* ContentView.swift in Sources */,
-				200D3E4F25548C6E0050470C /* Node+CoreDataClass.swift in Sources */,
-				200D3E4C25548C6E0050470C /* Connection+CoreDataProperties.swift in Sources */,
 				204108682554659900932502 /* Persistence.swift in Sources */,
 				200D3E4825548C6E0050470C /* Country+CoreDataProperties.swift in Sources */,
 				200D3E4A25548C6E0050470C /* Candy+CoreDataProperties.swift in Sources */,
 				2085B0EC254DBE1300080A64 /* smalljumpApp.swift in Sources */,
-				200D3E5025548C6E0050470C /* Node+CoreDataProperties.swift in Sources */,
-				200D3E4E25548C6E0050470C /* Graph+CoreDataProperties.swift in Sources */,
-				200D3E4B25548C6E0050470C /* Connection+CoreDataClass.swift in Sources */,
 				200D3E4725548C6E0050470C /* Country+CoreDataClass.swift in Sources */,
 				204108702554692E00932502 /* smalljump.xcdatamodeld in Sources */,
 				200D3E4925548C6E0050470C /* Candy+CoreDataClass.swift in Sources */,
-				200D3E4D25548C6E0050470C /* Graph+CoreDataClass.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
