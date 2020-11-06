@@ -337,9 +337,9 @@ struct CDBall: View {
     }
 
     var body: some View {
-        log("CDBall body run")
-        log("localPosition: \(localPosition)")
-        log("localPreviousPosition: \(localPreviousPosition)")
+//        log("CDBall body run")
+//        log("localPosition: \(localPosition)")
+//        log("localPreviousPosition: \(localPreviousPosition)")
         
         
         Circle().stroke(Color.black)
@@ -376,7 +376,7 @@ struct CDBall: View {
                         .onChanged {
 //                            self.position = updatePosition(value: $0,
 //                                                           position: self.previousPosition)
-                            log("onChanged called")
+//                            log("onChanged called")
                             self.localPosition = updatePosition(value: $0,
                                                            position: self.localPreviousPosition)
                             
@@ -385,16 +385,16 @@ struct CDBall: View {
                         
                         .onEnded { (value: DragGesture.Value) in
 //                            if isAnchored {
-                            log("onEnded called")
+//                            log("onEnded called")
                             if node.isAnchored {
-                                log("node is anchored")
+//                                log("node is anchored")
                                 let minDistance: CGFloat = CGFloat(90)
                                 // Did we move the node enough for it to become a free, de-anchored node?
                                 let movedEnough: Bool =
                                     abs(value.translation.width) > minDistance ||
                                     abs(value.translation.height) > minDistance
                                 if movedEnough {
-                                    log("node moved enough")
+//                                    log("node moved enough")
 //                                    self.isAnchored.toggle()
                                     node.isAnchored = false
                                     
@@ -405,8 +405,8 @@ struct CDBall: View {
                                     playSound(sound: "positive_ping", type: "mp3")
                                     
                                     // now,
-                                    log("DE-ANCHORING: ")
-                                    log("will try to create a node:")
+//                                    log("DE-ANCHORING: ")
+//                                    log("will try to create a node:")
                                     let node1: Node = Node(context: self.moc)
                                     node1.info = UUID()
                                     node1.isAnchored = true
@@ -419,18 +419,18 @@ struct CDBall: View {
                                     node1.positionY = Float(0)
                                     node1.radius = 30
                                     do {
-                                        log("will attempt save...")
+//                                        log("will attempt save...")
                                         try self.moc.save()
                                         // if it was successful, then increment the node count
                                         self.nodeCount += 1
                                       } catch {
-                                        log("failed to save")
+//                                        log("failed to save")
                                         log("error was: \(error.localizedDescription)")
                                       }
                                     
                                 }
                                 else {
-                                    log("node did not move enough")
+//                                    log("node did not move enough")
                                     withAnimation(.spring())
 //                                        { self.position = .zero }
                                         { self.localPosition = CGSize.zero }
@@ -438,15 +438,15 @@ struct CDBall: View {
                             }
                             else {
 //                                self.previousPosition = self.position
-                                log("node was not anchored")
+//                                log("node was not anchored")
                                 self.localPreviousPosition = self.localPosition
                             }
                             
-                            log("Will try to set node position now")
+//                            log("Will try to set node position now")
                             // finally, in any case, we save the position of the ball:
                             node.positionX = Float(localPosition.width)
                             node.positionY = Float(localPosition.height)
-                            log("Will try to save node position now")
+//                            log("Will try to save node position now")
                             try? moc.save()
                             
                         })
@@ -505,7 +505,7 @@ struct GraphView: View {
     @Environment(\.managedObjectContext) var moc
 
     // Okay to be local for now, but in feature will need to be feature of
-    @State private var nodeCount: Int = 1 // start with one node
+    @State private var nodeCount: Int // = 1 // start with one node
 
     // all existings edges
 //    @State public var connections: [Connection] = []
@@ -529,18 +529,45 @@ struct GraphView: View {
     
     
 //    let firstNode: Node
-    var nodes: FetchedResults<Node>
+//    var nodes: FetchedResults<Node>
     var connections: FetchedResults<Connection>
+    
+    // if i edit any of the nodes, and I make
+    // if I make this is regular array,
+    var nodes: FetchedResults<Node>
+//    var nodes: [Node]
 
     init(nodes: FetchedResults<Node>, connections: FetchedResults<Connection>) {
+//    init(nodes: FetchedResults<Node>, connections: FetchedResults<Connection>, node1: Node) {
+
+//        let node1: Node = Node(context: moc)
+//        node1.info = UUID()
+//        node1.isAnchored = true
+////                    node1.nodeNumber = //Int32.random(in: 0 ..< 100) //1
+//        node1.nodeNumber = Int32(1)
+//
+//        node1.positionX = Float(0)
+//        node1.positionY = Float(0)
+//        node1.radius = 30
+//
+        self._nodeCount = State.init(initialValue: nodes.count)
         self.nodes = nodes
+//        self.nodes = Array(nodes)
+        // if there are no nodes, start us out with one
+//        self.nodes = nodes.isEmpty ? [node1] : Array(nodes)
         self.connections = connections
+        
     }
 
     
     var body: some View {
         VStack { // HACK: bottom right corner alignment
             log("nodeCount in View: \(nodeCount)")
+            log("nodes.count: \(nodes.count)")
+            
+            
+            
+            
             Spacer()
             HStack {
                 Spacer()
@@ -605,37 +632,91 @@ struct ContentView: View {
     
     var body: some View {
         
-
-        log("ContentView Body: ")
-        log("will try to create a node:")
-        let node1: Node = Node(context: self.moc)
-        node1.info = UUID()
-        node1.isAnchored = true
-//                    node1.nodeNumber = //Int32.random(in: 0 ..< 100) //1
-        // create it with next node count,
-        // but don't mutate nodeCount itself until we've successfully saved it in the context
-        node1.nodeNumber = Int32(1)
-
-        node1.positionX = Float(0)
-        node1.positionY = Float(0)
-        node1.radius = 30
+//        if nodes.first != nil {
+//            log("nodes.first: \(nodes.first)")
+//        }
+//        else {
+//            log("nd")
+//        }
+        log("nodes in ContentView: \(nodes)")
+//        log("ContentView Body: ")
+//        log("will try to create a node:")
         
-//        firstNode = node1
-        
+        // using the moc seems to be considered a 'state update in the view'
+//        let node1: Node = Node(context: self.moc)
+//        node1.info = UUID()
+//        node1.isAnchored = true
+////                    node1.nodeNumber = //Int32.random(in: 0 ..< 100) //1
+//        // create it with next node count,
+//        // but don't mutate nodeCount itself until we've successfully saved it in the context
+//        node1.nodeNumber = Int32(1)
+//
+//        node1.positionX = Float(0)
+//        node1.positionY = Float(0)
+//        node1.radius = 30
+////
+////        firstNode = node1
+//
 //        do {
-//            log("will attempt save...")
-//            try self.moc.save()
+//            if nodes.count == 0 {
+//                log("will attempt save...")
+//                try self.moc.save()
+//            }
+//
+////            log("will attempt save...")
+////            try self.moc.save()
 //            // if it was successful, then increment the node count
 ////            self.nodeCount += 1
 //          } catch {
 //            log("failed to save")
 //            log("error was: \(error.localizedDescription)")
 //          }
+//
         
-        return GraphView(nodes:nodes, connections: connections)
+        return GraphView(nodes: nodes, connections: connections)
+        
+        // providing node1 ... i think even simply creating it,
+//        return GraphView(nodes: nodes, connections: connections, node1: node1)
     }
 }
 
+
+func textOrNil(_ text: Bool) -> Text? {
+    guard text else { return nil }
+    return Text("Hello")
+}
+
+func imageOrNil(_ text: Bool) -> Image? {
+    guard text else { return Image(systemName: "headphones") }
+    return nil
+}
+
+func startOrNil(_ //nodes: FetchedResults<Node>,
+                    nodesEmpty: Bool,
+                    moc: NSManagedObjectContext) -> Button<Text>? {
+//    if nodes.isEmpty {
+    if nodesEmpty {
+        return Button("Start") {
+            log("Start button called")
+            let node1: Node = Node(context: moc)
+            node1.info = UUID()
+            node1.isAnchored = true
+    //                    node1.nodeNumber = //Int32.random(in: 0 ..< 100) //1
+            // create it with next node count,
+            // but don't mutate nodeCount itself until we've successfully saved it in the context
+            node1.nodeNumber = Int32(1)
+    
+            node1.positionX = Float(0)
+            node1.positionY = Float(0)
+            node1.radius = 30
+            
+            try? moc.save()
+        }
+    }
+    else {
+        return nil
+    }
+}
 
 /* ----------------------------------------------------------------
  PREVIEW
@@ -646,9 +727,47 @@ struct ContentView_Previews: PreviewProvider {
         ContentView()
             .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
         
+//        PreviewCoreDataWrapper { moc in
+//            ContentView()
+//                .environment(\.managedObjectContext, moc)
+//        }
         
-//        ContentViewExample().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+
     }
+}
+
+
+// doesn't work for some reason...
+////https://lailo.ch/tips/swiftui-preview-with-coredata
+struct PreviewCoreDataWrapper<Content: View>: View {
+  let content: (NSManagedObjectContext) -> Content
+
+  var body: some View {
+//    let managedObjectContext = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    let managedObjectContext = PersistenceController.preview.container.viewContext
+
+//    let todo = Todo(context: managedObjectContext)
+//    todo.title = "I Am Legend"
+
+    let node1: Node = Node(context: managedObjectContext)
+    node1.info = UUID()
+    node1.isAnchored = true
+//                    node1.nodeNumber = //Int32.random(in: 0 ..< 100) //1
+    node1.nodeNumber = Int32(1)
+
+    node1.positionX = Float(0)
+    node1.positionY = Float(0)
+    node1.radius = 30
+    
+    
+    try? managedObjectContext.save()
+
+    return self.content(managedObjectContext)
+  }
+
+  init(@ViewBuilder content: @escaping (NSManagedObjectContext) -> Content) {
+    self.content = content
+  }
 }
 
 
@@ -673,7 +792,6 @@ struct NodeTextView: View {
     }
 
 }
-
 
 struct NodeList: View {
     

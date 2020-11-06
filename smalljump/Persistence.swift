@@ -23,7 +23,7 @@ struct PersistenceController {
     
     static var preview: PersistenceController = {
         
-        
+        print("in preview...")
         let result = PersistenceController(inMemory: true)
         
         let viewContext = result.container.viewContext
