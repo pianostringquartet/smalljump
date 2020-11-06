@@ -248,221 +248,326 @@ func updatePosition(value: DragGesture.Value, position: CGSize) -> CGSize {
 //  }
 //}
 
-struct NodeList: View {
-
+struct CDBall: View {
     @Environment(\.managedObjectContext) var moc
     
-//    @State private var nodes: [Node];
-    var nodes: FetchedResults<Node>
+    // instead of modifying these,
+    // I actually want to mutate the passed in node
+//    @State private var position = CGSize.zero
+//    @State private var previousPosition = CGSize.zero
     
-    init(nodes: FetchedResults<Node>) {
-        self.nodes = nodes
-    }
+//
+    
+//    @State private var isAnchored: Bool = true
+    
+//    @Binding public var connections: [Connection]
+    
+    // for now these are still ViewState
+    @Binding public var nodeCount: Int
+    @Binding public var connectingNode: Int?
+
+    // Node info
+//    @State private var info: UUID = UUID()
+//    @State private var showPopover: Bool = false
+
+//    let nodeNumber: Int
+//    let radius: CGFloat
+
+    // these have to be carefully massaged etc. from the
+//    var position: CGSize
+//    var previousPosition: CGSize
+    
+    var node: Node
+    
+    // alternatively -- mutate these locally onDrag,
+    //    // and only save them when onDragEnded
+    @State private var localPosition: CGSize // = CGSize.zero
+    @State private var localPreviousPosition: CGSize // = CGSize.zero
+    
+    init(
+//        nodeNumber: Int,
+//         radius: CGFloat,
+////         connections: Binding<[Connection]>,
+
+         nodeCount: Binding<Int>,
+         connectingNode: Binding<Int?>,
+         node: Node
         
-    
-    var body: some View {
-        ForEach(nodes, id: \.self) { (node: Node) in
+    ) {
+//        self.nodeNumber = nodeNumber
+//        self.radius = radius
+//        self._connections = connections
+//        self.node
+        self._nodeCount = nodeCount
+        self._connectingNode = connectingNode
+        
+        // convert node positionX,Y to CGSize
+        
+        self.node = node
+        
+        let convertedPosition: CGSize = CGSize(width: CGFloat(node.positionX), height: CGFloat(node.positionY))
+        //        self.previousPosition = convertedPosition
                 
-                // we're able to print this out etc. :)
-                log("there was a node?")
-                log("node: \(node)")
-                Text("node number: \(node.nodeNumber)")
-        }.onDelete { indexSet in
-            for index in indexSet {
-                moc.delete(nodes[index])
-//                        try? moc.save()
-            }
-            do {
-                log("about to save after removing a candy")
-                try moc.save()
-            } catch {
-                log("failed trying to save after removing a candy")
-                log(error.localizedDescription)
-//                    }
+                // alternative: reset these everytime we persist-save,
+                // and we only persist-save when we finish onDragEnded;
+                // otherwise these are mutated locally during onDrag
+        self._localPosition = State.init(initialValue: convertedPosition)
+        self._localPreviousPosition = State.init(initialValue: convertedPosition)
+    }
+
+    private func determineColor() -> Color {
+//        if connectingNode == nodeNumber {
+//        if connectingNode == node.nodeNumber {
+        
+        // better?: use .map
+        if connectingNode != nil && connectingNode! == node.nodeNumber {
+            return Color.pink
+        }
+//        else if !isAnchored {
+        else if !node.isAnchored {
+            return Color.blue
+        }
+        else {
+//            return position == CGSize.zero ?
+                return localPosition == CGSize.zero ?
+                    Color.white.opacity(0) :
+//                    Color.blue.opacity(0 + Double((abs(position.height) + abs(position.width)) / 99))
+                    Color.blue.opacity(0 + Double((abs(localPosition.height) + abs(localPosition.width)) / 99))
         }
     }
+
+    var body: some View {
+        log("CDBall body run")
+        log("localPosition: \(localPosition)")
+        log("localPreviousPosition: \(localPreviousPosition)")
+        
+        
+        Circle().stroke(Color.black)
+//            .popover(isPresented: $showPopover, arrowEdge: .bottom) {
+//                VStack (spacing: 20) {
+//                    Text("Node Number: \(nodeNumber)")
+//                    Text("Node ID: \(info)")
+//                }
+//                .padding()
+//            }
+            .background(Image(systemName: "plus"))
+            .overlay(LinearGradient(gradient: Gradient(colors: [
+                                                        // white of opacity 0 means: 'invisible'
+//                                                        position == CGSize.zero ? Color.white.opacity(0) : Color.white,
+                                                        localPosition == CGSize.zero ? Color.white.opacity(0)
+                                                            : determineColor()]),
+                               startPoint: .topLeading,
+                               endPoint: .bottomTrailing
+                ))
+            .clipShape(/*@START_MENU_TOKEN@*/Circle()/*@END_MENU_TOKEN@*/)
+//            .frame(width: radius, height: radius)
+            .frame(width: CGFloat(node.radius), height: CGFloat(node.radius))
+            // Child stores its center in anchor preference data,
+            // for parent to later access.
+            // NOTE: must come before .offset modifier
+            .anchorPreference(key: BallPreferenceKey.self,
+                              value: .center, // center for Anchor<CGPoint>
+                              transform: {
+                                [BallPreferenceData(viewIdx: Int(node.nodeNumber), center: $0)] })
+//                                [BallPreferenceData(viewIdx: self.nodeNumber, center: $0)] })
+//            .offset(x: self.position.width, y: self.position.height)
+            .offset(x: localPosition.width, y: localPosition.height)
+            .gesture(DragGesture()
+                        .onChanged {
+//                            self.position = updatePosition(value: $0,
+//                                                           position: self.previousPosition)
+                            log("onChanged called")
+                            self.localPosition = updatePosition(value: $0,
+                                                           position: self.localPreviousPosition)
+                            
+                            
+                        }
+                        
+                        .onEnded { (value: DragGesture.Value) in
+//                            if isAnchored {
+                            log("onEnded called")
+                            if node.isAnchored {
+                                log("node is anchored")
+                                let minDistance: CGFloat = CGFloat(90)
+                                // Did we move the node enough for it to become a free, de-anchored node?
+                                let movedEnough: Bool =
+                                    abs(value.translation.width) > minDistance ||
+                                    abs(value.translation.height) > minDistance
+                                if movedEnough {
+                                    log("node moved enough")
+//                                    self.isAnchored.toggle()
+                                    node.isAnchored = false
+                                    
+//                                    self.previousPosition = self.position
+                                    self.localPreviousPosition = self.localPosition
+                                    
+//                                    self.nodeCount += 1
+                                    playSound(sound: "positive_ping", type: "mp3")
+                                    
+                                    // now,
+                                    log("DE-ANCHORING: ")
+                                    log("will try to create a node:")
+                                    let node1: Node = Node(context: self.moc)
+                                    node1.info = UUID()
+                                    node1.isAnchored = true
+                //                    node1.nodeNumber = //Int32.random(in: 0 ..< 100) //1
+                                    // create it with next node count,
+                                    // but don't mutate nodeCount itself until we've successfully saved it in the context
+                                    node1.nodeNumber = Int32(nodeCount + 1)
+
+                                    node1.positionX = Float(0)
+                                    node1.positionY = Float(0)
+                                    node1.radius = 30
+                                    do {
+                                        log("will attempt save...")
+                                        try self.moc.save()
+                                        // if it was successful, then increment the node count
+                                        self.nodeCount += 1
+                                      } catch {
+                                        log("failed to save")
+                                        log("error was: \(error.localizedDescription)")
+                                      }
+                                    
+                                }
+                                else {
+                                    log("node did not move enough")
+                                    withAnimation(.spring())
+//                                        { self.position = .zero }
+                                        { self.localPosition = CGSize.zero }
+                                }
+                            }
+                            else {
+//                                self.previousPosition = self.position
+                                log("node was not anchored")
+                                self.localPreviousPosition = self.localPosition
+                            }
+                            
+                            log("Will try to set node position now")
+                            // finally, in any case, we save the position of the ball:
+                            node.positionX = Float(localPosition.width)
+                            node.positionY = Float(localPosition.height)
+                            log("Will try to save node position now")
+                            try? moc.save()
+                            
+                        })
+            .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))
+//            .onTapGesture(count: 2, perform: {
+//                if !isAnchored {
+//                    self.showPopover.toggle()
+//                }
+//            })
+//            .onTapGesture(count: /*@START_MENU_TOKEN@*/1/*@END_MENU_TOKEN@*/, perform: {
+//                if !isAnchored {
+//                    let existsConnectingNode: Bool = connectingNode != nil
+//                    let isConnectingNode: Bool = existsConnectingNode && connectingNode == nodeNumber
+//
+//                    // Note: if no existing connecting node, make this node the connecting node
+//                    // ie user is attempting to create or remove a node
+//                    if !existsConnectingNode {
+//                        self.connectingNode = self.nodeNumber
+//                    }
+//                    else { // ie there is an connecting node:
+//                        // CORE DATA:
+//                        let edge: Connection = Connection(from: connectingNode!, to: self.nodeNumber)
+//
+//                        let edgeAlreadyExists: Bool = connections.contains(edge)
+//
+//                        // if exist connecting node and I am the connecting node, cancel ie set connecting node=nil
+//                        if isConnectingNode {
+//                            self.connectingNode = nil
+//                        }
+//                        // if existing connecting node and I am NOT the connecting node AND there already exists a connxn(connecting node, me),
+//                        // remove the connection and set connecting node=nil
+//                        else if !isConnectingNode && edgeAlreadyExists {
+//                            // CORE DATA:
+//                            self.connections = connections.filter { $0 != edge }
+//                            self.connectingNode = nil
+//                            playSound(sound: "connection_removed", type: "mp3")
+//                        }
+//                        // if existing connecting node and I am NOT the connecting node AND there DOES NOT exist a connxn(connecting node, me),
+//                        // add the connection and set connecting node=nil
+//                        else if !isConnectingNode && !edgeAlreadyExists {
+//                            self.connections.append(edge)
+//                            self.connectingNode = nil
+//                            playSound(sound: "connection_added", type: "mp3")
+//                        }
+//                    }
+//                }
+//            })
     }
 }
 
 
 
 
-struct ContentView: View {
-    
-    // must come before any descriptions etc.
+struct GraphView: View {
+    // must come first
     @Environment(\.managedObjectContext) var moc
 
-    // from: https://www.hackingwithswift.com/books/ios-swiftui/how-to-combine-core-data-and-swiftui
-    @FetchRequest(entity: Student.entity(), sortDescriptors: [])
-    var students: FetchedResults<Student>
-    
-//    @FetchRequest(entity: Connection.entity(), sortDescriptors: [])
-//    var connections: FetchedResults<Connection>
-
-    
+    // Okay to be local for now, but in feature will need to be feature of
     @State private var nodeCount: Int = 1 // start with one node
 
     // all existings edges
 //    @State public var connections: [Connection] = []
 
+    // WILL NOT BE PERSISTED:
     // particular node to which we are adding/removing connections
     @State public var connectingNode: Int? = nil
 
-    @FetchRequest(entity: Node.entity(),
-                  // i.e. want to retrieve them in a consistent order, just like when they were created
-                  // could also do this sorting outside or elsewhere?
-                  sortDescriptors: [NSSortDescriptor(keyPath: \Node.nodeNumber, ascending: true)])
+//    @FetchRequest(entity: Node.entity(),
+//                  // i.e. want to retrieve them in a consistent order, just like when they were created
+//                  // could also do this sorting outside or elsewhere?
+//                  sortDescriptors: [NSSortDescriptor(keyPath: \Node.nodeNumber, ascending: true)])
+//    var nodes: FetchedResults<Node>
+//    // FetchedResults is a collection type, can be used in `List`, ForEach etc.
+//
+//    // if connections are still stored separately...
+//    @FetchRequest(entity: Connection.entity(),
+//                  sortDescriptors: [])
+//
+//    var connections: FetchedResults<Connection>
+    
+    
+//    let firstNode: Node
     var nodes: FetchedResults<Node>
-    
-    // FetchedResults is a collection type, can be used in `List` etc.
-    
-    // if connections are still stored separately...
-    @FetchRequest(entity: Connection.entity(),
-                  sortDescriptors: [])
     var connections: FetchedResults<Connection>
+
+    init(nodes: FetchedResults<Node>, connections: FetchedResults<Connection>) {
+        self.nodes = nodes
+        self.connections = connections
+    }
+
     
     var body: some View {
-        VStack {
-            List {
-                log("nodes: \(nodes)")
-                NodeList(nodes: nodes)
-//                ForEach(nodes, id: \.self) { (node: Node) in
-//
-//                        // we're able to print this out etc. :)
-//                        log("there was a node?")
-//                        log("node: \(node)")
-//                        Text("node number: \(node.nodeNumber)")
-//                }.onDelete { indexSet in
-//                    for index in indexSet {
-//                        moc.delete(nodes[index])
-////                        try? moc.save()
-//                    }
-//                    do {
-//                        log("about to save after removing a candy")
-//                        try moc.save()
-//                    } catch {
-//                        log("failed trying to save after removing a candy")
-//                        log(error.localizedDescription)
-////                    }
-//                }
-//            }
-        }
-
-            Button("Destroy first node") {
-                if nodes.first != nil {
-                    moc.delete(nodes[0])
-                    try? moc.save()
-                }
-            }
-            Button("Change first node's number") {
-                if nodes.first != nil {
-                    nodes[0].nodeNumber = 12
-                    try? moc.save()
-                }
-            }
-        
-            Button("Add") { // pressed several times :)
-                
-                log("will try to create a node:")
-                
-                // I don't want to make an object like this!
-                // I want to do `Node(info, isAnchored, nodeNumber, positionX, ...)` etc.
-                // make a separate function?
-                let node1: Node = Node(context: self.moc)
-                node1.info = UUID()
-                node1.isAnchored = true
-                node1.nodeNumber = Int32.random(in: 0 ..< 100) //1
-                node1.positionX = Float(0)
-                node1.positionY = Float(0)
-                node1.radius = 30
-                
-                // First of all -- if you don't need the graph, don't have the graph yet
-                // creating the graph
-                // Don't need to create the graph until
-//                node1.graph = Graph(context: self.moc)
-//                node1.graph?.id = UUID()
-//                node1.graph?.nodeCount = 1
-                
-                
-                
-                // ah, this has to be a set? it's an NSSet?
-                // and presumably the set can be empty, right?
-//                node1.connection = Connection(context: self.moc)
-//                node1.connection?.id = UUID()
-//                node1.connection?.from = 1
-//                node1.connection?.to = 2
-                
-                
-                // creating at least one connection
-                
-                
-                
-                
-//                let graph1: Graph = Graph(context: self.moc)
-//                graph1.id = UUID()
-//                graph1.nodeCount = 1
-//                graph1.connections = Connection(
-//                graph1
-//                graph1
-
-                do {
-                    log("will attempt save...")
-                      try self.moc.save()
-                  } catch {
-                    log("failed to save")
-                    log("error was: \(error.localizedDescription)")
-                  }
-                
-            }
-        }
-    }
-        
-//        VStack {
-//            List {
-//               ForEach(students, id: \.id) { student in
-////                ForEach(students, id: \.id) { (student: Student) in
-//                   Text(student.name ?? "Unknown")
-//               }
-//
-//            }
-//            Button("Add") {
-//                let firstNames = ["Ginny", "Harry", "Hermione", "Luna", "Ron"]
-//                let lastNames = ["Granger", "Lovegood", "Potter", "Weasley"]
-//
-//                let chosenFirstName = firstNames.randomElement()!
-//                let chosenLastName = lastNames.randomElement()!
-//
-//                // we give the CD-defined model the managedObjectContext key
-//                let student = Student(context: self.moc)
-//
-//                student.id = UUID()
-//                student.name = "\(chosenFirstName) \(chosenLastName)"
-//                log("about to try to save")
-//                try? self.moc.save()
-//            }
-//        }
-        
-
-//        VStack { // HACK: bottom right corner alignment
-//
-//
-//
-//            Spacer()
-//            HStack {
-//                Spacer()
-//                ZStack {
+        VStack { // HACK: bottom right corner alignment
+            log("nodeCount in View: \(nodeCount)")
+            Spacer()
+            HStack {
+                Spacer()
+                ZStack {
 //                    ForEach(1 ..< nodeCount + 1, id: \.self) { nodeNumber -> Ball in
-//                        Ball(nodeNumber: nodeNumber,
+//                    ForEach(1 ..< nodeCount + 1, id: \.self) { nodeNumber -> CDBall in
+                    
+                    // what happens if you DON'T have any nodes at all...
+                    // can do the workaround for the "If no nodes" check
+                    
+                    
+                    ForEach(nodes, id: \.self) { (node: Node) in
+                        CDBall(
+//                            nodeNumber: nodeNumber,
 //                            radius: 60,
 //                            connections: $connections,
-//                            nodeCount: $nodeCount,
-//                            connectingNode: $connectingNode)
-//
-//                    }.padding(.trailing, 30).padding(.bottom, 30)
-//                }
-//            }
-//        }
-//        .backgroundPreferenceValue(BallPreferenceKey.self) { (preferences: [BallPreferenceData]) in
+                            nodeCount: $nodeCount,
+                            connectingNode: $connectingNode,
+                            node: node)
+
+                    }.padding(.trailing, 30).padding(.bottom, 30)
+                    
+                }
+            }
+        }
+        // nothing for now
+        .backgroundPreferenceValue(BallPreferenceKey.self) { (preferences: [BallPreferenceData]) in
 //            if connections.count >= 1 && nodeCount >= 2 {
 //                GeometryReader { (geometry: GeometryProxy) in
 //                    ForEach(connections, content: { (connection: Connection) in
@@ -474,11 +579,62 @@ struct ContentView: View {
 //                    })
 //                }
 //            }
-//        }
-//    }
+        }
+    }
 }
 
 
+struct ContentView: View {
+
+    @Environment(\.managedObjectContext) var moc
+//    let firstNode: Node
+    
+    @FetchRequest(entity: Node.entity(),
+                  // i.e. want to retrieve them in a consistent order, just like when they were created
+                  // could also do this sorting outside or elsewhere?
+                  sortDescriptors: [NSSortDescriptor(keyPath: \Node.nodeNumber, ascending: true)])
+    var nodes: FetchedResults<Node>
+    // FetchedResults is a collection type, can be used in `List`, ForEach etc.
+    
+    // if connections are still stored separately...
+    @FetchRequest(entity: Connection.entity(),
+                  sortDescriptors: [])
+    
+    var connections: FetchedResults<Connection>
+    
+    
+    var body: some View {
+        
+
+        log("ContentView Body: ")
+        log("will try to create a node:")
+        let node1: Node = Node(context: self.moc)
+        node1.info = UUID()
+        node1.isAnchored = true
+//                    node1.nodeNumber = //Int32.random(in: 0 ..< 100) //1
+        // create it with next node count,
+        // but don't mutate nodeCount itself until we've successfully saved it in the context
+        node1.nodeNumber = Int32(1)
+
+        node1.positionX = Float(0)
+        node1.positionY = Float(0)
+        node1.radius = 30
+        
+//        firstNode = node1
+        
+//        do {
+//            log("will attempt save...")
+//            try self.moc.save()
+//            // if it was successful, then increment the node count
+////            self.nodeCount += 1
+//          } catch {
+//            log("failed to save")
+//            log("error was: \(error.localizedDescription)")
+//          }
+        
+        return GraphView(nodes:nodes, connections: connections)
+    }
+}
 
 
 /* ----------------------------------------------------------------
@@ -487,12 +643,72 @@ struct ContentView: View {
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        
         ContentView()
-            // note the use of the `preview` property
             .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
         
         
 //        ContentViewExample().environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
+    }
+}
+
+
+// want to pass down a SINGLE fetched result
+struct NodeTextView: View {
+    @Environment(\.managedObjectContext) var moc
+
+    // need some id so that SwiftUI can track changes
+    let id: Int
+    var node: Node
+    init(node: Node, id: Int) {
+        self.node = node
+        self.id = id
+    }
+    var body: some View {
+        log("node: \(node)")
+        Text("node number: \(node.nodeNumber)")
+        Button("Change this node's number") {
+            node.nodeNumber = 99
+            try? moc.save()
+        }
+    }
+
+}
+
+
+struct NodeList: View {
+    
+    @Environment(\.managedObjectContext) var moc
+
+    var nodes: FetchedResults<Node>
+
+    init(nodes: FetchedResults<Node>) {
+        self.nodes = nodes
+    }
+
+    var body: some View {
+//        ForEach(nodes, id: \.self) { (node: Node) in
+        ForEach(nodes, id: \.id) { (node: Node) in
+//                Text("node number: \(node.nodeNumber)")
+            NodeTextView(node: node, id: Int(node.nodeNumber))
+        }.onDelete { indexSet in
+            for index in indexSet {
+                moc.delete(nodes[index])
+            }
+            do {
+                log("about to save after removing a candy")
+                try moc.save()
+            } catch {
+                log("failed trying to save after removing a candy")
+                log(error.localizedDescription)
+//                    }
+            }
+        }
+//        Button("Change first node's number") {
+//            if nodes.first != nil {
+//                nodes[0].nodeNumber = 50
+//                try? moc.save()
+//            }
+//        }
+
     }
 }

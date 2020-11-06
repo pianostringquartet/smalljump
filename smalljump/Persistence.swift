@@ -31,11 +31,21 @@ struct PersistenceController {
         
         // what is this really doing?
         // it's attempting to manually create some items?
-        for _ in 0..<10 {
+//        for _ in 0..<2 {
             // we pass the Item the
-            let newItem = Item(context: viewContext)
-            newItem.timestamp = Date()
-        }
+//            let newItem = Item(context: viewContext)
+//            newItem.timestamp = Date()
+//        }
+        
+        let node1: Node = Node(context: viewContext)
+        node1.info = UUID()
+        node1.isAnchored = true
+//                    node1.nodeNumber = //Int32.random(in: 0 ..< 100) //1
+        node1.nodeNumber = Int32(1)
+
+        node1.positionX = Float(0)
+        node1.positionY = Float(0)
+        node1.radius = 30
         
         do {
             // oh god, this is really bad -- is this supposed to save the newItems we created,
