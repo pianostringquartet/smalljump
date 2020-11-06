@@ -500,6 +500,7 @@ struct CDBall: View {
 
 
 
+
 struct GraphView: View {
     // must come first
     @Environment(\.managedObjectContext) var moc
@@ -559,6 +560,37 @@ struct GraphView: View {
         
     }
 
+    // also causes undefined behavior
+//    func updatedNodes(loveNodes: [Node]) -> [Node] {
+//        let node1: Node = Node(context: moc)
+//        node1.info = UUID()
+//        node1.isAnchored = true
+////                    node1.nodeNumber = //Int32.random(in: 0 ..< 100) //1
+//        // create it with next node count,
+//        // but don't mutate nodeCount itself until we've successfully saved it in the context
+//        node1.nodeNumber = Int32(1)
+//
+//        node1.positionX = Float(0)
+//        node1.positionY = Float(0)
+//        node1.radius = 30
+//
+////        if loveNodes.isEmpty {
+////            log("loveNodes was empty")
+////            loveNodes.append(node1)
+////        }
+////
+////        Array(loveNodes)
+////
+////        log("loveNodes: \(loveNodes)")
+////        return loveNodes
+//
+//        log("loveNodes.isEmpty: \(loveNodes.isEmpty)")
+//
+//        let myNodes = loveNodes.isEmpty ? Array(loveNodes) + [node1] : nodes
+//        print("myNodes: \(myNodes)")
+//        return myNodes
+//    }
+    
     
     var body: some View {
         VStack { // HACK: bottom right corner alignment
@@ -571,14 +603,32 @@ struct GraphView: View {
             HStack {
                 Spacer()
                 ZStack {
+                    
 //                    ForEach(1 ..< nodeCount + 1, id: \.self) { nodeNumber -> Ball in
 //                    ForEach(1 ..< nodeCount + 1, id: \.self) { nodeNumber -> CDBall in
                     
                     // what happens if you DON'T have any nodes at all...
                     // can do the workaround for the "If no nodes" check
                     
+//                    let node1: Node = Node(context: moc)
+//                    node1.info = UUID()
+//                    node1.isAnchored = true
+//            //                    node1.nodeNumber = //Int32.random(in: 0 ..< 100) //1
+//                    // create it with next node count,
+//                    // but don't mutate nodeCount itself until we've successfully saved it in the context
+//                    node1.nodeNumber = Int32(1)
+//
+//                    node1.positionX = Float(0)
+//                    node1.positionY = Float(0)
+//                    node1.radius = 30
+//
+//                    let myNodes = nodes.isEmpty ? nodes.append(node1) : nodes
                     
-                    ForEach(nodes, id: \.self) { (node: Node) in
+                    
+                    
+                    return ForEach(nodes, id: \.self) { (node: Node) in
+//                    let myNodes = updatedNodes(loveNodes: nodes)
+//                    ForEach(myNodes, id: \.self) { (node: Node) in
                         CDBall(
 //                            nodeNumber: nodeNumber,
 //                            radius: 60,
@@ -609,12 +659,29 @@ struct GraphView: View {
     }
 }
 
+func startOrNil(nodesEmpty: Bool, moc: NSManagedObjectContext) -> Button<Text>? {
+    if nodesEmpty {
+        return Button("Start") {
+            let node1: Node = Node(context: moc)
+            node1.info = UUID()
+            node1.isAnchored = true
+            node1.nodeNumber = Int32(1)
+            node1.positionX = Float(0)
+            node1.positionY = Float(0)
+            node1.radius = 30
+            try? moc.save()
+        }
+    }
+    else {
+        return nil
+    }
+}
 
-struct ContentView: View {
+
+//struct ContentView1: View {
+struct GraphDisplay: View {
 
     @Environment(\.managedObjectContext) var moc
-//    let firstNode: Node
-    
     @FetchRequest(entity: Node.entity(),
                   // i.e. want to retrieve them in a consistent order, just like when they were created
                   // could also do this sorting outside or elsewhere?
@@ -628,6 +695,11 @@ struct ContentView: View {
     
     var connections: FetchedResults<Connection>
     
+    let graphID: Int
+    
+//    int(graphID: Int) {
+//        self.graphID = graphID
+//    }
     
     var body: some View {
         
@@ -679,152 +751,66 @@ struct ContentView: View {
     }
 }
 
-
-func textOrNil(_ text: Bool) -> Text? {
-    guard text else { return nil }
-    return Text("Hello")
-}
-
-func imageOrNil(_ text: Bool) -> Image? {
-    guard text else { return Image(systemName: "headphones") }
-    return nil
-}
-
-func startOrNil(nodesEmpty: Bool,
-                moc: NSManagedObjectContext) -> Button<Text>? {
-//    if nodes.isEmpty {
-    if nodesEmpty {
-        return Button("Start") {
-            log("Start button called")
-            let node1: Node = Node(context: moc)
-            node1.info = UUID()
-            node1.isAnchored = true
-    //                    node1.nodeNumber = //Int32.random(in: 0 ..< 100) //1
-            // create it with next node count,
-            // but don't mutate nodeCount itself until we've successfully saved it in the context
-            node1.nodeNumber = Int32(1)
-    
-            node1.positionX = Float(0)
-            node1.positionY = Float(0)
-            node1.radius = 30
-            
-            try? moc.save()
-        }
-    }
-    else {
-        return nil
-    }
-}
-
 /* ----------------------------------------------------------------
  PREVIEW
  ---------------------------------------------------------------- */
 
+struct GraphID: Identifiable {
+    let id = UUID()
+    let graphNumber: Int
+}
+
+
+struct ContentView: View { // MUST BE CALLED CONTENT VIEW
+    @Environment(\.managedObjectContext) var moc
+    
+//    let graphCount: Int = 1
+    // Start out with zero graphs
+    @State public var graphCount: Int = 0
+    
+    
+    
+    let graphs: [GraphID] = [GraphID(graphNumber: 1), GraphID(graphNumber: 2), GraphID(graphNumber: 3)]
+    
+    var body: some View {
+        
+        // TODO: Look further into proper behavior for Nav on iPhone vs. iPad
+        NavigationView {
+            
+            Text("Demo: add some simple user settings here?")
+            // this is a view modifier; wherever you attach this, you'll have the
+            .navigationBarTitle(Text("Settings"), displayMode: .inline)
+                        
+            VStack(spacing: 30) {
+                List {
+                    // DEBUG?: Doesn't work if placed outside List
+                    // Will graphCount already have been mutated?
+                    NavigationLink(destination: GraphDisplay(graphID: graphCount + 1))
+                    {
+                        Button("Create new graph") {
+                            // do CD logic here to create a node?
+                            log("we're gonna make a new graph")
+                            graphCount += 1
+                            
+                            
+                        }
+                    }
+                    ForEach(graphs, id: \.id) { (graph: GraphID) in
+                        NavigationLink(destination: GraphDisplay(graphID: graph.graphNumber)) {
+                             Text("Edit Graph \(graph.graphNumber)")
+                        }
+                    }
+                }
+            }
+//            .navigationBarTitle(Text("Graphs"), displayMode: .inline)
+        }
+    }
+}
+
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        ContentView() // must be named content view
             .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
-        
-//        PreviewCoreDataWrapper { moc in
-//            ContentView()
-//                .environment(\.managedObjectContext, moc)
-//        }
-        
-
-    }
-}
-
-
-// doesn't work for some reason...
-////https://lailo.ch/tips/swiftui-preview-with-coredata
-struct PreviewCoreDataWrapper<Content: View>: View {
-  let content: (NSManagedObjectContext) -> Content
-
-  var body: some View {
-//    let managedObjectContext = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-    let managedObjectContext = PersistenceController.preview.container.viewContext
-
-//    let todo = Todo(context: managedObjectContext)
-//    todo.title = "I Am Legend"
-
-    let node1: Node = Node(context: managedObjectContext)
-    node1.info = UUID()
-    node1.isAnchored = true
-//                    node1.nodeNumber = //Int32.random(in: 0 ..< 100) //1
-    node1.nodeNumber = Int32(1)
-
-    node1.positionX = Float(0)
-    node1.positionY = Float(0)
-    node1.radius = 30
-    
-    
-    try? managedObjectContext.save()
-
-    return self.content(managedObjectContext)
-  }
-
-  init(@ViewBuilder content: @escaping (NSManagedObjectContext) -> Content) {
-    self.content = content
-  }
-}
-
-
-// want to pass down a SINGLE fetched result
-struct NodeTextView: View {
-    @Environment(\.managedObjectContext) var moc
-
-    // need some id so that SwiftUI can track changes
-    let id: Int
-    var node: Node
-    init(node: Node, id: Int) {
-        self.node = node
-        self.id = id
-    }
-    var body: some View {
-        log("node: \(node)")
-        Text("node number: \(node.nodeNumber)")
-        Button("Change this node's number") {
-            node.nodeNumber = 99
-            try? moc.save()
-        }
-    }
-
-}
-
-struct NodeList: View {
-    
-    @Environment(\.managedObjectContext) var moc
-
-    var nodes: FetchedResults<Node>
-
-    init(nodes: FetchedResults<Node>) {
-        self.nodes = nodes
-    }
-
-    var body: some View {
-//        ForEach(nodes, id: \.self) { (node: Node) in
-        ForEach(nodes, id: \.id) { (node: Node) in
-//                Text("node number: \(node.nodeNumber)")
-            NodeTextView(node: node, id: Int(node.nodeNumber))
-        }.onDelete { indexSet in
-            for index in indexSet {
-                moc.delete(nodes[index])
-            }
-            do {
-                log("about to save after removing a candy")
-                try moc.save()
-            } catch {
-                log("failed trying to save after removing a candy")
-                log(error.localizedDescription)
-//                    }
-            }
-        }
-//        Button("Change first node's number") {
-//            if nodes.first != nil {
-//                nodes[0].nodeNumber = 50
-//                try? moc.save()
-//            }
-//        }
 
     }
 }
