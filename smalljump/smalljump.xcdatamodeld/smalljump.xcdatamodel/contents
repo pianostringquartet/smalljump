@@ -6,6 +6,7 @@
     </entity>
     <entity name="Connection" representedClassName="Connection" syncable="YES" codeGenerationType="class">
         <attribute name="from" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="graphId" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="to" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <relationship name="node" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Node" inverseName="connection" inverseEntity="Node"/>
@@ -24,6 +25,7 @@
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
     <entity name="Node" representedClassName="Node" syncable="YES" codeGenerationType="class">
+        <attribute name="graphId" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="info" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="isAnchored" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="nodeNumber" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
@@ -42,8 +44,8 @@
         <element name="Country" positionX="141.5546875" positionY="62.8203125" width="128" height="88"/>
         <element name="Graph" positionX="152.40234375" positionY="-53.65234375" width="128" height="88"/>
         <element name="Item" positionX="-63" positionY="-18" width="128" height="58"/>
-        <element name="Node" positionX="34.91796875" positionY="-118.8125" width="128" height="163"/>
+        <element name="Node" positionX="34.91796875" positionY="-118.8125" width="128" height="178"/>
         <element name="Student" positionX="-63" positionY="-9" width="128" height="73"/>
-        <element name="Connection" positionX="18" positionY="36" width="128" height="103"/>
+        <element name="Connection" positionX="18" positionY="36" width="128" height="118"/>
     </elements>
 </model>

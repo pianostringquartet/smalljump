@@ -251,17 +251,6 @@ func updatePosition(value: DragGesture.Value, position: CGSize) -> CGSize {
 struct CDBall: View {
     @Environment(\.managedObjectContext) var moc
     
-    // instead of modifying these,
-    // I actually want to mutate the passed in node
-//    @State private var position = CGSize.zero
-//    @State private var previousPosition = CGSize.zero
-    
-//
-    
-//    @State private var isAnchored: Bool = true
-    
-//    @Binding public var connections: [Connection]
-    
     // for now these are still ViewState
     @Binding public var nodeCount: Int
     @Binding public var connectingNode: Int?
@@ -284,6 +273,8 @@ struct CDBall: View {
     @State private var localPosition: CGSize // = CGSize.zero
     @State private var localPreviousPosition: CGSize // = CGSize.zero
     
+    let graphId: Int
+    
     init(
 //        nodeNumber: Int,
 //         radius: CGFloat,
@@ -291,7 +282,8 @@ struct CDBall: View {
 
          nodeCount: Binding<Int>,
          connectingNode: Binding<Int?>,
-         node: Node
+         node: Node,
+        graphId: Int
         
     ) {
 //        self.nodeNumber = nodeNumber
@@ -313,6 +305,8 @@ struct CDBall: View {
                 // otherwise these are mutated locally during onDrag
         self._localPosition = State.init(initialValue: convertedPosition)
         self._localPreviousPosition = State.init(initialValue: convertedPosition)
+        
+        self.graphId = graphId
     }
 
     private func determineColor() -> Color {
@@ -407,26 +401,31 @@ struct CDBall: View {
                                     // now,
 //                                    log("DE-ANCHORING: ")
 //                                    log("will try to create a node:")
-                                    let node1: Node = Node(context: self.moc)
-                                    node1.info = UUID()
-                                    node1.isAnchored = true
-                //                    node1.nodeNumber = //Int32.random(in: 0 ..< 100) //1
-                                    // create it with next node count,
-                                    // but don't mutate nodeCount itself until we've successfully saved it in the context
-                                    node1.nodeNumber = Int32(nodeCount + 1)
-
-                                    node1.positionX = Float(0)
-                                    node1.positionY = Float(0)
-                                    node1.radius = 30
-                                    do {
-//                                        log("will attempt save...")
-                                        try self.moc.save()
-                                        // if it was successful, then increment the node count
-                                        self.nodeCount += 1
-                                      } catch {
-//                                        log("failed to save")
-                                        log("error was: \(error.localizedDescription)")
-                                      }
+                                    let node: Node = Node(context: self.moc)
+                                    mutateNewNode(node: node,
+                                               nodeNumber: nodeCount + 1,
+                                               graphId: graphId)
+                                    try? self.moc.save()
+                                    
+//                                    node1.info = UUID()
+//                                    node1.isAnchored = true
+//                //                    node1.nodeNumber = //Int32.random(in: 0 ..< 100) //1
+//                                    // create it with next node count,
+//                                    // but don't mutate nodeCount itself until we've successfully saved it in the context
+//                                    node1.nodeNumber = Int32(nodeCount + 1)
+//
+//                                    node1.positionX = Float(0)
+//                                    node1.positionY = Float(0)
+//                                    node1.radius = 30
+//                                    do {
+////                                        log("will attempt save...")
+//                                        try self.moc.save()
+//                                        // if it was successful, then increment the node count
+//                                        self.nodeCount += 1
+//                                      } catch {
+////                                        log("failed to save")
+//                                        log("error was: \(error.localizedDescription)")
+//                                      }
                                     
                                 }
                                 else {
@@ -447,6 +446,7 @@ struct CDBall: View {
                             node.positionX = Float(localPosition.width)
                             node.positionY = Float(localPosition.height)
 //                            log("Will try to save node position now")
+                            
                             try? moc.save()
                             
                         })
@@ -514,57 +514,37 @@ struct GraphView: View {
     // WILL NOT BE PERSISTED:
     // particular node to which we are adding/removing connections
     @State public var connectingNode: Int? = nil
-
+    
 //    @FetchRequest(entity: Node.entity(),
 //                  // i.e. want to retrieve them in a consistent order, just like when they were created
 //                  // could also do this sorting outside or elsewhere?
-//                  sortDescriptors: [NSSortDescriptor(keyPath: \Node.nodeNumber, ascending: true)])
+//                  sortDescriptors: [NSSortDescriptor(keyPath: \Node.nodeNumber, ascending: true)],
+//
+//                  predicate: NSPredicate(format: "graphId == %@", "2")
+//                  // now graphDisplay should only grab the nodes for
+//                  // a particular graph?
+//                  // first: hardcode the graph number, then
+//    )
     var nodes: FetchedResults<Node>
+//    var nodes: FetchedResults<Node>
     
     @FetchRequest(entity: Connection.entity(),
                   sortDescriptors: [])
     var connections: FetchedResults<Connection>
     
-    init(nodes: FetchedResults<Node>
+    let graphId: Int
+    
+    
+    init(
+        nodes: FetchedResults<Node>,
+         graphId: Int
 //         connections: FetchedResults<Connection>
     ) {
         self._nodeCount = State.init(initialValue: nodes.count)
         self.nodes = nodes
 //        self.connections = connections
-        
+        self.graphId = graphId
     }
-
-    // also causes undefined behavior
-//    func updatedNodes(loveNodes: [Node]) -> [Node] {
-//        let node1: Node = Node(context: moc)
-//        node1.info = UUID()
-//        node1.isAnchored = true
-////                    node1.nodeNumber = //Int32.random(in: 0 ..< 100) //1
-//        // create it with next node count,
-//        // but don't mutate nodeCount itself until we've successfully saved it in the context
-//        node1.nodeNumber = Int32(1)
-//
-//        node1.positionX = Float(0)
-//        node1.positionY = Float(0)
-//        node1.radius = 30
-//
-////        if loveNodes.isEmpty {
-////            log("loveNodes was empty")
-////            loveNodes.append(node1)
-////        }
-////
-////        Array(loveNodes)
-////
-////        log("loveNodes: \(loveNodes)")
-////        return loveNodes
-//
-//        log("loveNodes.isEmpty: \(loveNodes.isEmpty)")
-//
-//        let myNodes = loveNodes.isEmpty ? Array(loveNodes) + [node1] : nodes
-//        print("myNodes: \(myNodes)")
-//        return myNodes
-//    }
-    
     
     var body: some View {
         VStack { // HACK: bottom right corner alignment
@@ -572,44 +552,19 @@ struct GraphView: View {
             log("nodes.count: \(nodes.count)")
             
             Spacer()
-            startOrNil(nodesEmpty: nodes.isEmpty, moc: moc)
             Spacer()
             HStack {
                 Spacer()
                 ZStack {
-                    
-//                    ForEach(1 ..< nodeCount + 1, id: \.self) { nodeNumber -> Ball in
-//                    ForEach(1 ..< nodeCount + 1, id: \.self) { nodeNumber -> CDBall in
-                    
-                    // what happens if you DON'T have any nodes at all...
-                    // can do the workaround for the "If no nodes" check
-                    
-//                    let node1: Node = Node(context: moc)
-//                    node1.info = UUID()
-//                    node1.isAnchored = true
-//            //                    node1.nodeNumber = //Int32.random(in: 0 ..< 100) //1
-//                    // create it with next node count,
-//                    // but don't mutate nodeCount itself until we've successfully saved it in the context
-//                    node1.nodeNumber = Int32(1)
-//
-//                    node1.positionX = Float(0)
-//                    node1.positionY = Float(0)
-//                    node1.radius = 30
-//
-//                    let myNodes = nodes.isEmpty ? nodes.append(node1) : nodes
-                    
-                    
-                    
                     return ForEach(nodes, id: \.self) { (node: Node) in
-//                    let myNodes = updatedNodes(loveNodes: nodes)
-//                    ForEach(myNodes, id: \.self) { (node: Node) in
                         CDBall(
 //                            nodeNumber: nodeNumber,
 //                            radius: 60,
 //                            connections: $connections,
                             nodeCount: $nodeCount,
                             connectingNode: $connectingNode,
-                            node: node)
+                            node: node,
+                            graphId: graphId)
 
                     }.padding(.trailing, 30).padding(.bottom, 30)
                     
@@ -640,25 +595,54 @@ struct GraphDisplay: View {
 
     @Environment(\.managedObjectContext) var moc
     
-    @FetchRequest(entity: Node.entity(),
-                  // i.e. want to retrieve them in a consistent order, just like when they were created
-                  // could also do this sorting outside or elsewhere?
-                  sortDescriptors: [NSSortDescriptor(keyPath: \Node.nodeNumber, ascending: true)])
-    var nodes: FetchedResults<Node>
-
-
-//    // if connections are still stored separately...
-//    @FetchRequest(entity: Connection.entity(),
-//                  sortDescriptors: [])
-//    var connections: FetchedResults<Connection>
+//    @FetchRequest(entity: Node.entity(),
+//                  // i.e. want to retrieve them in a consistent order, just like when they were created
+//                  // could also do this sorting outside or elsewhere?
+//                  sortDescriptors: [NSSortDescriptor(keyPath: \Node.nodeNumber, ascending: true)]
+////                  ,
+////
+////                  predicate: NSPredicate(format: "graphId == %@", "2")
+//
+//                  // now graphDisplay should only grab the nodes for
+//                  // a particular graph?
+//                  // first: hardcode the graph number, then
+//    )
+//    var nodes: FetchedResults<Node>
     
-    let graphID: Int
-    
+//    var nodes: FetchRequest<Node>
+    var fetchRequest: FetchRequest<Node>
+    var nodes: FetchedResults<Node> { fetchRequest.wrappedValue }
+    let graphId: Int
+
+    init(
+//        nodes: FetchedResults<Node>,
+        graphId: Int
+    ) {
+//
+            log("inside init: graphId: \(graphId)")
+//        self.nodes = nodes
+        fetchRequest = FetchRequest<Node>(
+            entity: Node.entity(),
+            sortDescriptors: [NSSortDescriptor(keyPath: \Node.nodeNumber, ascending: true)],
+            predicate: NSPredicate(format: "graphId == %@",
+//                                   0 // this works
+//                                   1 // this throws
+                                   NSNumber(value: graphId)
+                                   // perfect: no nodes show up :-)
+//                                   NSNumber(value: 0)
+                                   
+                                   //graphId
+            ))
+        self.graphId = graphId
+    }
     var body: some View {
-        log("graphID in GraphDisplay: \(graphID)")
+        log("graphId in GraphDisplay: \(graphId)")
+        log("fetchRequest in GraphDisplay: \(fetchRequest)")
         log("nodes in GraphDisplay: \(nodes)")
 //        return GraphView(nodes: nodes, connections: connections)
-        return GraphView(nodes: nodes)
+        return GraphView(
+            nodes: nodes,
+            graphId: graphId)
     }
 }
 
@@ -666,7 +650,7 @@ struct GraphDisplay: View {
  PREVIEW
  ---------------------------------------------------------------- */
 
-struct GraphID: Identifiable {
+struct GraphEntityWhatever: Identifiable {
     let id = UUID()
     let graphNumber: Int
 }
@@ -690,7 +674,7 @@ struct ContentView: View { // MUST BE CALLED CONTENT VIEW
                   sortDescriptors: [])
     var connections: FetchedResults<Connection>
         
-    let graphs: [GraphID] = [GraphID(graphNumber: 1), GraphID(graphNumber: 2), GraphID(graphNumber: 3)]
+    let graphs: [GraphEntityWhatever] = [GraphEntityWhatever(graphNumber: 1), GraphEntityWhatever(graphNumber: 2), GraphEntityWhatever(graphNumber: 3)]
     
     @State private var action: Int? = 0
     
@@ -707,41 +691,37 @@ struct ContentView: View { // MUST BE CALLED CONTENT VIEW
                 List {
                     // DEBUG: Doesn't work if placed outside List
                     // DEBUG: Why must we use the $action mutation here? (graphCount mutation not enough)
-                    NavigationLink(destination: GraphDisplay(graphID: graphCount), tag: 1, selection: $action)
+                    NavigationLink(destination: GraphDisplay(graphId: graphCount), tag: 1, selection: $action)
                     {
                         Text("Create new graph").onTapGesture {
                             log("we're gonna make a new graph")
-    
                             graphCount += 1
                             
-                            let node1: Node = Node(context: self.moc)
-                            node1.info = UUID()
-                            node1.isAnchored = true
-                            node1.nodeNumber = Int32(1)
-                            node1.positionX = Float(0)
-                            node1.positionY = Float(0)
-                            node1.radius = 30
+                            let node = Node(context: self.moc)
+                            mutateNewNode(node: node,
+                                          nodeNumber: 1,
+                                          graphId: graphCount)
+                            
                             try? moc.save()
                             
                             log("ContentView: nodes are now: \(nodes)")
                             log("self.action: \(self.action)")
-                            
                             // NOTE?: do the CoreData and local state mutate first;
                             // and only then go to the NavLink view
                             self.action = 1
 
                         }
                     }
-                    ForEach(graphs, id: \.id) { (graph: GraphID) in
+                    ForEach(graphs, id: \.id) { (graph: GraphEntityWhatever) in
                         NavigationLink(destination:
-                                        Text("Graph: \(graph.graphNumber)")//GraphDisplay(graphID: graph.graphNumber)
+//                                        Text("Graph: \(graph.graphNumber)")
+                                       GraphDisplay(graphId: graph.graphNumber)
                         ) {
                              Text("Edit Graph \(graph.graphNumber)")
                         }
                     }
                 }
             }
-//            .navigationBarTitle(Text("Graphs"), displayMode: .inline)
         }
     }
 }
@@ -754,21 +734,16 @@ struct ContentView_Previews: PreviewProvider {
     }
 }
 
-
-func startOrNil(nodesEmpty: Bool, moc: NSManagedObjectContext) -> Button<Text>? {
-    if nodesEmpty {
-        return Button("Start") {
-            let node1: Node = Node(context: moc)
-            node1.info = UUID()
-            node1.isAnchored = true
-            node1.nodeNumber = Int32(1)
-            node1.positionX = Float(0)
-            node1.positionY = Float(0)
-            node1.radius = 30
-            try? moc.save()
-        }
-    }
-    else {
-        return nil
-    }
+// i.e. create a new 'anchor/plus ball';
+// must receive a node already created via `Node(context: self.moc)`
+// and must be followed by `try? self.moc.save()`
+// Apparently can't pass around the NSManagedObjectContext to a pure function?
+func mutateNewNode(node: Node, nodeNumber: Int, graphId: Int) -> () {
+    node.info = UUID()
+    node.isAnchored = true // because 'anchor ball'
+    node.nodeNumber = Int32(nodeNumber)
+    node.graphId = Int32(graphId)
+    node.positionX = Float(0)
+    node.positionY = Float(0)
+    node.radius = 30
 }
