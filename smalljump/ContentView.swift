@@ -519,44 +519,18 @@ struct GraphView: View {
 //                  // i.e. want to retrieve them in a consistent order, just like when they were created
 //                  // could also do this sorting outside or elsewhere?
 //                  sortDescriptors: [NSSortDescriptor(keyPath: \Node.nodeNumber, ascending: true)])
-//    var nodes: FetchedResults<Node>
-//    // FetchedResults is a collection type, can be used in `List`, ForEach etc.
-//
-//    // if connections are still stored separately...
-//    @FetchRequest(entity: Connection.entity(),
-//                  sortDescriptors: [])
-//
-//    var connections: FetchedResults<Connection>
+    var nodes: FetchedResults<Node>
     
-    
-//    let firstNode: Node
-//    var nodes: FetchedResults<Node>
+    @FetchRequest(entity: Connection.entity(),
+                  sortDescriptors: [])
     var connections: FetchedResults<Connection>
     
-    // if i edit any of the nodes, and I make
-    // if I make this is regular array,
-    var nodes: FetchedResults<Node>
-//    var nodes: [Node]
-
-    init(nodes: FetchedResults<Node>, connections: FetchedResults<Connection>) {
-//    init(nodes: FetchedResults<Node>, connections: FetchedResults<Connection>, node1: Node) {
-
-//        let node1: Node = Node(context: moc)
-//        node1.info = UUID()
-//        node1.isAnchored = true
-////                    node1.nodeNumber = //Int32.random(in: 0 ..< 100) //1
-//        node1.nodeNumber = Int32(1)
-//
-//        node1.positionX = Float(0)
-//        node1.positionY = Float(0)
-//        node1.radius = 30
-//
+    init(nodes: FetchedResults<Node>
+//         connections: FetchedResults<Connection>
+    ) {
         self._nodeCount = State.init(initialValue: nodes.count)
         self.nodes = nodes
-//        self.nodes = Array(nodes)
-        // if there are no nodes, start us out with one
-//        self.nodes = nodes.isEmpty ? [node1] : Array(nodes)
-        self.connections = connections
+//        self.connections = connections
         
     }
 
@@ -659,95 +633,32 @@ struct GraphView: View {
     }
 }
 
-func startOrNil(nodesEmpty: Bool, moc: NSManagedObjectContext) -> Button<Text>? {
-    if nodesEmpty {
-        return Button("Start") {
-            let node1: Node = Node(context: moc)
-            node1.info = UUID()
-            node1.isAnchored = true
-            node1.nodeNumber = Int32(1)
-            node1.positionX = Float(0)
-            node1.positionY = Float(0)
-            node1.radius = 30
-            try? moc.save()
-        }
-    }
-    else {
-        return nil
-    }
-}
 
 
 //struct ContentView1: View {
 struct GraphDisplay: View {
 
     @Environment(\.managedObjectContext) var moc
+    
     @FetchRequest(entity: Node.entity(),
                   // i.e. want to retrieve them in a consistent order, just like when they were created
                   // could also do this sorting outside or elsewhere?
                   sortDescriptors: [NSSortDescriptor(keyPath: \Node.nodeNumber, ascending: true)])
     var nodes: FetchedResults<Node>
-    // FetchedResults is a collection type, can be used in `List`, ForEach etc.
-    
-    // if connections are still stored separately...
-    @FetchRequest(entity: Connection.entity(),
-                  sortDescriptors: [])
-    
-    var connections: FetchedResults<Connection>
+
+
+//    // if connections are still stored separately...
+//    @FetchRequest(entity: Connection.entity(),
+//                  sortDescriptors: [])
+//    var connections: FetchedResults<Connection>
     
     let graphID: Int
     
-//    int(graphID: Int) {
-//        self.graphID = graphID
-//    }
-    
     var body: some View {
-        
-//        if nodes.first != nil {
-//            log("nodes.first: \(nodes.first)")
-//        }
-//        else {
-//            log("nd")
-//        }
-        log("nodes in ContentView: \(nodes)")
-//        log("ContentView Body: ")
-//        log("will try to create a node:")
-        
-        // using the moc seems to be considered a 'state update in the view'
-//        let node1: Node = Node(context: self.moc)
-//        node1.info = UUID()
-//        node1.isAnchored = true
-////                    node1.nodeNumber = //Int32.random(in: 0 ..< 100) //1
-//        // create it with next node count,
-//        // but don't mutate nodeCount itself until we've successfully saved it in the context
-//        node1.nodeNumber = Int32(1)
-//
-//        node1.positionX = Float(0)
-//        node1.positionY = Float(0)
-//        node1.radius = 30
-////
-////        firstNode = node1
-//
-//        do {
-//            if nodes.count == 0 {
-//                log("will attempt save...")
-//                try self.moc.save()
-//            }
-//
-////            log("will attempt save...")
-////            try self.moc.save()
-//            // if it was successful, then increment the node count
-////            self.nodeCount += 1
-//          } catch {
-//            log("failed to save")
-//            log("error was: \(error.localizedDescription)")
-//          }
-//
-        
-        return GraphView(nodes: nodes, connections: connections)
-        
-        // providing node1 ... i think even simply creating it,
-//        return GraphView(nodes: nodes, connections: connections, node1: node1)
+        log("graphID in GraphDisplay: \(graphID)")
+        log("nodes in GraphDisplay: \(nodes)")
+//        return GraphView(nodes: nodes, connections: connections)
+        return GraphView(nodes: nodes)
     }
 }
 
@@ -769,8 +680,19 @@ struct ContentView: View { // MUST BE CALLED CONTENT VIEW
     @State public var graphCount: Int = 0
     
     
+    @FetchRequest(entity: Node.entity(),
+                  // i.e. want to retrieve them in a consistent order, just like when they were created
+                  // could also do this sorting outside or elsewhere?
+                  sortDescriptors: [NSSortDescriptor(keyPath: \Node.nodeNumber, ascending: true)])
+    var nodes: FetchedResults<Node>
     
+    @FetchRequest(entity: Connection.entity(),
+                  sortDescriptors: [])
+    var connections: FetchedResults<Connection>
+        
     let graphs: [GraphID] = [GraphID(graphNumber: 1), GraphID(graphNumber: 2), GraphID(graphNumber: 3)]
+    
+    @State private var action: Int? = 0
     
     var body: some View {
         
@@ -783,20 +705,37 @@ struct ContentView: View { // MUST BE CALLED CONTENT VIEW
                         
             VStack(spacing: 30) {
                 List {
-                    // DEBUG?: Doesn't work if placed outside List
-                    // Will graphCount already have been mutated?
-                    NavigationLink(destination: GraphDisplay(graphID: graphCount + 1))
+                    // DEBUG: Doesn't work if placed outside List
+                    // DEBUG: Why must we use the $action mutation here? (graphCount mutation not enough)
+                    NavigationLink(destination: GraphDisplay(graphID: graphCount), tag: 1, selection: $action)
                     {
-                        Button("Create new graph") {
-                            // do CD logic here to create a node?
+                        Text("Create new graph").onTapGesture {
                             log("we're gonna make a new graph")
+    
                             graphCount += 1
                             
+                            let node1: Node = Node(context: self.moc)
+                            node1.info = UUID()
+                            node1.isAnchored = true
+                            node1.nodeNumber = Int32(1)
+                            node1.positionX = Float(0)
+                            node1.positionY = Float(0)
+                            node1.radius = 30
+                            try? moc.save()
                             
+                            log("ContentView: nodes are now: \(nodes)")
+                            log("self.action: \(self.action)")
+                            
+                            // NOTE?: do the CoreData and local state mutate first;
+                            // and only then go to the NavLink view
+                            self.action = 1
+
                         }
                     }
                     ForEach(graphs, id: \.id) { (graph: GraphID) in
-                        NavigationLink(destination: GraphDisplay(graphID: graph.graphNumber)) {
+                        NavigationLink(destination:
+                                        Text("Graph: \(graph.graphNumber)")//GraphDisplay(graphID: graph.graphNumber)
+                        ) {
                              Text("Edit Graph \(graph.graphNumber)")
                         }
                     }
@@ -812,5 +751,24 @@ struct ContentView_Previews: PreviewProvider {
         ContentView() // must be named content view
             .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
 
+    }
+}
+
+
+func startOrNil(nodesEmpty: Bool, moc: NSManagedObjectContext) -> Button<Text>? {
+    if nodesEmpty {
+        return Button("Start") {
+            let node1: Node = Node(context: moc)
+            node1.info = UUID()
+            node1.isAnchored = true
+            node1.nodeNumber = Int32(1)
+            node1.positionX = Float(0)
+            node1.positionY = Float(0)
+            node1.radius = 30
+            try? moc.save()
+        }
+    }
+    else {
+        return nil
     }
 }
