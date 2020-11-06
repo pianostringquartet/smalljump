@@ -565,9 +565,8 @@ struct GraphView: View {
             log("nodeCount in View: \(nodeCount)")
             log("nodes.count: \(nodes.count)")
             
-            
-            
-            
+            Spacer()
+            startOrNil(nodesEmpty: nodes.isEmpty, moc: moc)
             Spacer()
             HStack {
                 Spacer()
@@ -691,9 +690,8 @@ func imageOrNil(_ text: Bool) -> Image? {
     return nil
 }
 
-func startOrNil(_ //nodes: FetchedResults<Node>,
-                    nodesEmpty: Bool,
-                    moc: NSManagedObjectContext) -> Button<Text>? {
+func startOrNil(nodesEmpty: Bool,
+                moc: NSManagedObjectContext) -> Button<Text>? {
 //    if nodes.isEmpty {
     if nodesEmpty {
         return Button("Start") {
