@@ -239,15 +239,6 @@ func updatePosition(value: DragGesture.Value, position: CGSize) -> CGSize {
  ---------------------------------------------------------------- */
 
 
-// method for saving
-//func saveContext() {
-//  do {
-//    try managedObjectContext.save()
-//  } catch {
-//    print("Error saving managed object context: \(error)")
-//  }
-//}
-
 struct CDBall: View {
     @Environment(\.managedObjectContext) var moc
     
@@ -275,11 +266,25 @@ struct CDBall: View {
     
     let graphId: Int
     
+    // could instead just pass around an array?
+//    var connections: FetchedResults<Connection>
+//    var connections: [Connection]
+    
+    
+    @FetchRequest(entity: Connection.entity(),
+                  sortDescriptors: []
+                  //,
+//                  predicate: NSPredicate(format: "trashed == %@", false)
+    )
+//    var fetchedConnections: FetchedResults<Connection>
+    var connections: FetchedResults<Connection>
+    
+    
     init(
 //        nodeNumber: Int,
 //         radius: CGFloat,
-////         connections: Binding<[Connection]>,
-
+//         connections: Binding<[Connection]>,
+//        connections: FetchedResults<Connection>,
          nodeCount: Binding<Int>,
          connectingNode: Binding<Int?>,
          node: Node,
@@ -289,6 +294,8 @@ struct CDBall: View {
 //        self.nodeNumber = nodeNumber
 //        self.radius = radius
 //        self._connections = connections
+//        self.connections = connections
+//        self.connections = Array(connections)
 //        self.node
         self._nodeCount = nodeCount
         self._connectingNode = connectingNode
@@ -334,7 +341,11 @@ struct CDBall: View {
 //        log("CDBall body run")
 //        log("localPosition: \(localPosition)")
 //        log("localPreviousPosition: \(localPreviousPosition)")
+        log("CDBall: connectingNode: \(connectingNode)")
+        log("CDBall: nodeCount: \(nodeCount)")
         
+        log("CDBall: node: \(node)")
+        log("CDBall: connections: \(connections)")
         
         Circle().stroke(Color.black)
 //            .popover(isPresented: $showPopover, arrowEdge: .bottom) {
@@ -354,6 +365,9 @@ struct CDBall: View {
                                endPoint: .bottomTrailing
                 ))
             .clipShape(/*@START_MENU_TOKEN@*/Circle()/*@END_MENU_TOKEN@*/)
+            
+            //added:
+            .overlay(Text("\(node.nodeNumber)"))
 //            .frame(width: radius, height: radius)
             .frame(width: CGFloat(node.radius), height: CGFloat(node.radius))
             // Child stores its center in anchor preference data,
@@ -407,26 +421,10 @@ struct CDBall: View {
                                                graphId: graphId)
                                     try? self.moc.save()
                                     
-//                                    node1.info = UUID()
-//                                    node1.isAnchored = true
-//                //                    node1.nodeNumber = //Int32.random(in: 0 ..< 100) //1
-//                                    // create it with next node count,
-//                                    // but don't mutate nodeCount itself until we've successfully saved it in the context
-//                                    node1.nodeNumber = Int32(nodeCount + 1)
-//
-//                                    node1.positionX = Float(0)
-//                                    node1.positionY = Float(0)
-//                                    node1.radius = 30
-//                                    do {
-////                                        log("will attempt save...")
-//                                        try self.moc.save()
-//                                        // if it was successful, then increment the node count
-//                                        self.nodeCount += 1
-//                                      } catch {
-////                                        log("failed to save")
-//                                        log("error was: \(error.localizedDescription)")
-//                                      }
-                                    
+                                    // do I even need to do this?
+                                    // it would be better to just do nodes.count
+                                    // wherever I need nodeCount + 1
+                                    self.nodeCount += 1
                                 }
                                 else {
 //                                    log("node did not move enough")
@@ -456,44 +454,200 @@ struct CDBall: View {
 //                    self.showPopover.toggle()
 //                }
 //            })
-//            .onTapGesture(count: /*@START_MENU_TOKEN@*/1/*@END_MENU_TOKEN@*/, perform: {
+            .onTapGesture(count: /*@START_MENU_TOKEN@*/1/*@END_MENU_TOKEN@*/, perform: {
 //                if !isAnchored {
-//                    let existsConnectingNode: Bool = connectingNode != nil
+                if !node.isAnchored {
+                    let existsConnectingNode: Bool = connectingNode != nil
 //                    let isConnectingNode: Bool = existsConnectingNode && connectingNode == nodeNumber
-//
-//                    // Note: if no existing connecting node, make this node the connecting node
-//                    // ie user is attempting to create or remove a node
-//                    if !existsConnectingNode {
+                    let isConnectingNode: Bool = existsConnectingNode && connectingNode != nil && connectingNode! == node.nodeNumber
+
+                    // Note: if no existing connecting node, make this node the connecting node
+                    // ie user is attempting to create or remove a node
+                    if !existsConnectingNode {
 //                        self.connectingNode = self.nodeNumber
-//                    }
-//                    else { // ie there is an connecting node:
-//                        // CORE DATA:
+                        log("no connecting node; making myself the connector now")
+                        self.connectingNode = Int(node.nodeNumber)
+                    }
+                    else { // ie there is an connecting node:
+                        // CORE DATA:
 //                        let edge: Connection = Connection(from: connectingNode!, to: self.nodeNumber)
-//
+                        
+                        log("there exists a connecting node: \(connectingNode!)")
+                        
+                        // here we just create the Connection -- but don't save it yet...
+                        let edge = Connection(context: self.moc)
+                        edge.id = UUID()
+                        edge.from = Int32(connectingNode!)
+                        edge.to = node.nodeNumber
+                        edge.graphId = Int32(graphId)
+                        edge.trashed = false
+
 //                        let edgeAlreadyExists: Bool = connections.contains(edge)
-//
-//                        // if exist connecting node and I am the connecting node, cancel ie set connecting node=nil
-//                        if isConnectingNode {
-//                            self.connectingNode = nil
-//                        }
-//                        // if existing connecting node and I am NOT the connecting node AND there already exists a connxn(connecting node, me),
-//                        // remove the connection and set connecting node=nil
-//                        else if !isConnectingNode && edgeAlreadyExists {
-//                            // CORE DATA:
+                        
+//                        let edgeAlreadyExists: Bool = Array(connections).contains(edge)
+                        
+                        // this is not doing what we want --
+//                        let edgeAlreadyExists: Bool = !Array(connections).filter { (conn: Connection) -> Bool in
+//                            conn.graphId == Int32(graphId) && conn.to == node.nodeNumber && conn.from == Int32(connectingNode!)
+//                        }.isEmpty
+                        
+                        // this works -- ie. can be true or false appropriately
+                        let edgeAlreadyExists: Bool = !connections.filter { (conn: Connection) -> Bool in
+                            conn.graphId == Int32(graphId) &&
+                                (conn.to == node.nodeNumber && conn.from == Int32(connectingNode!)
+                                    || conn.from == node.nodeNumber && conn.to == Int32(connectingNode!))
+                        }.isEmpty
+                        
+                        // Alternatively, you can try to fetch a
+                        
+                        
+//                            .contains(edge)
+                        
+                        log("edgeAlreadyExists: \(edgeAlreadyExists)")
+
+                        // if exist connecting node and I am the connecting node, cancel ie set connecting node=nil
+                        if isConnectingNode {
+                            log("I am the connecting node; turning me off")
+                            self.connectingNode = nil
+                        }
+                        // if existing connecting node and I am NOT the connecting node AND there already exists a connxn(connecting node, me),
+                        // remove the connection and set connecting node=nil
+                        else if !isConnectingNode && edgeAlreadyExists {
+                            // CORE DATA:
 //                            self.connections = connections.filter { $0 != edge }
-//                            self.connectingNode = nil
-//                            playSound(sound: "connection_removed", type: "mp3")
-//                        }
-//                        // if existing connecting node and I am NOT the connecting node AND there DOES NOT exist a connxn(connecting node, me),
-//                        // add the connection and set connecting node=nil
-//                        else if !isConnectingNode && !edgeAlreadyExists {
+//
+//                            self.connections = connections.filter { $0 != edge }
+//                            connections
+                            // will this work? ... the edge was even't inserted yet?
+                            log("!isConnectingNode && edgeAlreadyExists: connections was: \(Array(connections))")
+//                            log("!isConnectingNode && edgeAlreadyExists: fetchedConnections was: \(Array(fetchedConnections))")
+                            log("will try to delete an existing edge between FROM connectingNode \(connectingNode!) and TO nodeNumber: \(node.nodeNumber)")
+                            
+                            // this seems to not be deleting...
+                            
+//                            moc.delete(edge)
+                            
+                            let alreadyExistingEdge: Int? = connections.firstIndex(where: { (conn: Connection) -> Bool in
+                                conn.graphId == Int32(graphId) &&
+                                    (conn.to == node.nodeNumber && conn.from == Int32(connectingNode!)
+                                        || conn.from == node.nodeNumber && conn.to == Int32(connectingNode!))
+                            })
+                            
+//                            let FCalreadyExistingEdge: Int = fetchedConnections.firstIndex(where: { (conn: Connection) -> Bool in
+//                                conn.graphId == Int32(graphId) &&
+//                                    (conn.to == node.nodeNumber && conn.from == Int32(connectingNode!)
+//                                        || conn.from == node.nodeNumber && conn.to == Int32(connectingNode!))
+//                            })!
+  
+//                            let xedgeAlreadyExists: Bool = !connections.filter { (conn: Connection) -> Bool in
+//                                conn.graphId == Int32(graphId) &&
+//                                    (conn.to == node.nodeNumber && conn.from == Int32(connectingNode!)
+//                                        || conn.from == node.nodeNumber && conn.to == Int32(connectingNode!))
+//                            }.isEmpty
+                            
+//
+                            log("alreadyExistingEdge INDEX is: \(alreadyExistingEdge)")
+//                            log("FCalreadyExistingEdge INDEX is: \(FCalreadyExistingEdge)")
+                            
+//                            fetchedConnections[alreadyExistingEdge!]
+                            
+                            // These pull out different objects... that's interesting
+//                            let conn: Connection = fetchedConnections[alreadyExistingEdge!]
+//                            let FCconn: Connection = fetchedConnections[FCalreadyExistingEdge]
+                            let conn: Connection = connections[alreadyExistingEdge!]
+//                            let FCconn: Connection = fetchedConnections[FCalreadyExistingEdge]
+                            
+//                            let conn: Connection = fetchedConnections[0]
+//                            moc.delete(fetchedConnections[alreadyExistingEdge!])
+                            log("conn: \(conn)")
+//                            log("FCconn: \(FCconn)")
+                            
+                            
+                            
+//                            self.moc.delete(fetchedConnections[alreadyExistingEdge!])
+//                            self.moc.delete(connections[alreadyExistingEdge!])
+                            
+//                            self.moc.delete(connections[alreadyExistingEdge!])
+//                            self.moc.delete(connections[alreadyExistingEdge!])
+//
+//                            log("conn.isDeleted: \(conn.isDeleted)")
+//
+//                            log("conn.trashed was: \(conn.trashed)")
+//                            conn.trashed = true
+//                            log("conn.trashed is now: \(conn.trashed)")
+//
+//
+        
+                            let fetchRequest : NSFetchRequest<Connection> = Connection.fetchRequest()
+//                            fetchRequest.predicate = NSPredicate(format: "from == %@", NSNumber(value: 1))
+//                            fetchRequest.predicate = NSPredicate(format: "from == %@", NSNumber(value: NSInteger(node.nodeNumber)))
+//                            fetchRequest.predicate = NSPredicate(format: "from == %i", node.nodeNumber)
+                            
+                            
+                            fetchRequest.predicate = NSPredicate(format: "from = %i AND to = %i", connectingNode!, node.nodeNumber)
+//                            fetchRequest.predicate = NSPredicate(format: "from == 1",)
+                            let fetchedResults = try? moc.fetch(fetchRequest) as! [Connection]
+                            log("fetchedResults: \(fetchedResults)")
+                            log("node.nodeNumber: \(node.nodeNumber)")
+                            log("NSInteger(node.nodeNumber): \(NSInteger(node.nodeNumber))")
+                            if let aConnection = fetchedResults?.first {
+//                               providerName.text = aContact.providerName
+                                log("there was connection: \(aConnection)")
+                                moc.delete(aConnection)
+                                log("aConnection.isDeleted: \(aConnection.isDeleted)")
+                                try? moc.save()
+                                // okay, that worked, that deleted the connection
+                            }
+                            // this can successfully retrieve a connection
+                            
+//                            self.moc.delete(fetchedConnections[FCalreadyExistingEdge])
+                            
+                            // these must come after the .delete, but before the moc.save
+                            
+//                            log("FCconn.isDeleted: \(FCconn.isDeleted)")
+                            
+                            // this can manually delete certain nodes, yes.
+//                            self.moc.delete(fetchedConnections[0])
+                            
+//                            try? self.moc.save()
+
+//
+//                            self.moc.delete(FCconn)
+//                            fetchedConnections.remove(at: alreadyExistingEdge)
+                            
+//                            try? moc.save()
+                            
+                            // doesn't throw an error...
+//                            do {
+//                                log("will try to save...")
+//                               try moc.save()
+//                            } catch {
+//                                log("failed to save! error: \(error)")
+//                            }
+                            
+                            
+                            
+                            log("!isConnectingNode && edgeAlreadyExists: connections is now: \(Array(connections))")
+//                            log("!isConnectingNode && edgeAlreadyExists: fetchedConnections was: \(Array(fetchedConnections))")
+                            
+                            self.connectingNode = nil
+                            playSound(sound: "connection_removed", type: "mp3")
+                        }
+                        // if existing connecting node and I am NOT the connecting node AND there DOES NOT exist a connxn(connecting node, me),
+                        // add the connection and set connecting node=nil
+                        else if !isConnectingNode && !edgeAlreadyExists {
+                            
 //                            self.connections.append(edge)
-//                            self.connectingNode = nil
-//                            playSound(sound: "connection_added", type: "mp3")
-//                        }
-//                    }
-//                }
-//            })
+                            // ie. save the edge we defined earlier
+                            log("will try to save the earlier defined edge; ie commit the transactions")
+                            try? moc.save()
+                            
+                            self.connectingNode = nil
+                            playSound(sound: "connection_added", type: "mp3")
+                        }
+                    }
+                }
+            })
     }
 }
 
@@ -502,10 +656,9 @@ struct CDBall: View {
 
 
 struct GraphView: View {
-    // must come first
     @Environment(\.managedObjectContext) var moc
 
-    // Okay to be local for now, but in feature will need to be feature of
+    
     @State private var nodeCount: Int // = 1 // start with one node
 
     // all existings edges
@@ -515,34 +668,26 @@ struct GraphView: View {
     // particular node to which we are adding/removing connections
     @State public var connectingNode: Int? = nil
     
-//    @FetchRequest(entity: Node.entity(),
-//                  // i.e. want to retrieve them in a consistent order, just like when they were created
-//                  // could also do this sorting outside or elsewhere?
-//                  sortDescriptors: [NSSortDescriptor(keyPath: \Node.nodeNumber, ascending: true)],
-//
-//                  predicate: NSPredicate(format: "graphId == %@", "2")
-//                  // now graphDisplay should only grab the nodes for
-//                  // a particular graph?
-//                  // first: hardcode the graph number, then
-//    )
     var nodes: FetchedResults<Node>
-//    var nodes: FetchedResults<Node>
+//    var connections: FetchedResults<Connection>
     
-//    @FetchRequest(entity: Connection.entity(),
-//                  sortDescriptors: [])
+    // filter down to
+    @FetchRequest(entity: Connection.entity(),
+                  sortDescriptors: []
+//                  ,
+//                  predicate: NSPredicate(format: "trashed == %@", false)
+    )
     var connections: FetchedResults<Connection>
     
-    let graphId: Int
+    let graphId: Int // doesn't change
     
-    
-    init(
-        nodes: FetchedResults<Node>,
-        graphId: Int,
-        connections: FetchedResults<Connection>
+    init(nodes: FetchedResults<Node>,
+         graphId: Int
+//         connections: FetchedResults<Connection>
     ) {
         self._nodeCount = State.init(initialValue: nodes.count)
         self.nodes = nodes
-        self.connections = connections
+//        self.connections = connections
         self.graphId = graphId
     }
     
@@ -561,6 +706,7 @@ struct GraphView: View {
 //                            nodeNumber: nodeNumber,
 //                            radius: 60,
 //                            connections: $connections,
+//                            connections: connections,
                             nodeCount: $nodeCount,
                             connectingNode: $connectingNode,
                             node: node,
@@ -573,6 +719,28 @@ struct GraphView: View {
         }
         // nothing for now
         .backgroundPreferenceValue(BallPreferenceKey.self) { (preferences: [BallPreferenceData]) in
+//            log("backgroundPreferenceValue called")
+            if connections.count >= 1 && nodeCount >= 2 {
+                log("might draw some lines...")
+                GeometryReader { (geometry: GeometryProxy) in
+                    ForEach(connections, content: { (connection: Connection) in
+                        log("backgroundPreferenceValue: connections: \(connections)")
+                        // need to be protected here..
+                        
+                        // -1 to convert from 1-based count to 0-based index
+                        let toPref: BallPreferenceData = preferences[Int(connection.to) - 1]
+                        let fromPref: BallPreferenceData = preferences[Int(connection.from) - 1]
+                        
+                        log("toPref: \(toPref)")
+                        log("fromPref: \(fromPref)")
+                        
+                        line(from: geometry[toPref.center], to: geometry[fromPref.center])
+                    })
+                    
+                }
+            }
+            
+            
 //            if connections.count >= 1 && nodeCount >= 2 {
 //                GeometryReader { (geometry: GeometryProxy) in
 //                    ForEach(connections, content: { (connection: Connection) in
@@ -590,15 +758,24 @@ struct GraphView: View {
 
 
 
-//struct ContentView1: View {
+// Retrieves nodes and connections just for this specific graph,
+// passes them to GraphView
 struct GraphDisplay: View {
 
     @Environment(\.managedObjectContext) var moc
     
     var nodesFetchRequest: FetchRequest<Node>
     var nodes: FetchedResults<Node> { nodesFetchRequest.wrappedValue }
-    var connectionsFetchRequest: FetchRequest<Connection>
-    var connections: FetchedResults<Connection> { connectionsFetchRequest.wrappedValue }
+    
+//    var connectionsFetchRequest: FetchRequest<Connection>
+//    var connections: FetchedResults<Connection> { connectionsFetchRequest.wrappedValue }
+//
+    @FetchRequest(entity: Connection.entity(),
+                  sortDescriptors: []
+//                  ,
+//                  predicate: NSPredicate(format: "trashed == %@", false)
+    )
+    var connections: FetchedResults<Connection>
     
     let graphId: Int
 
@@ -608,20 +785,26 @@ struct GraphDisplay: View {
         nodesFetchRequest = FetchRequest<Node>(
             entity: Node.entity(),
             sortDescriptors: [NSSortDescriptor(keyPath: \Node.nodeNumber, ascending: true)],
-            predicate: NSPredicate(format: "graphId == %@", NSNumber(value: graphId)))
+            // should this be?:
+            predicate: NSPredicate(format: "graphId = %@", NSNumber(value: graphId)))
         
-        connectionsFetchRequest = FetchRequest<Connection>(
-            entity: Connection.entity(),
-            sortDescriptors: [],
-            predicate: NSPredicate(format: "graphId == %@", NSNumber(value: graphId)))
+//        connectionsFetchRequest = FetchRequest<Connection>(
+//            entity: Connection.entity(),
+//            sortDescriptors: [],
+//            predicate: NSPredicate(format: "graphId == %@", NSNumber(value: graphId)))
         
         self.graphId = graphId
     }
     var body: some View {
         log("graphId in GraphDisplay: \(graphId)")
-        log("fetchRequest in GraphDisplay: \(nodesFetchRequest)")
+//        log("fetchRequest in GraphDisplay: \(nodesFetchRequest)")
         log("nodes in GraphDisplay: \(nodes)")
-        return GraphView(nodes: nodes, graphId: graphId, connections: connections)
+        log("connections in GraphDisplay: \(connections)")
+//        return GraphView(nodes: nodes, graphId: graphId, connections: connections)
+        return GraphView(nodes: nodes, graphId: graphId
+//                         ,
+//                         connections: connections
+        )
     }
 }
 
@@ -670,13 +853,13 @@ struct GraphSelectionView: View {
                                     self.graphCount += 1
                                     log("graphCount is now: \(graphCount)")
                                     
+                                    // Create first node for graph
                                     let node = Node(context: self.moc)
                                     mutateNewNode(node: node,
                                                   nodeNumber: 1,
                                                   graphId: graphCount)
                                     
-                                    
-                                    // will also want to create a new graph
+                                    // Create graph itself
                                     let graph = Graph(context: self.moc)
                                     graph.id = UUID()
                                     graph.graphId = Int32(graphCount)
@@ -697,9 +880,9 @@ struct GraphSelectionView: View {
                                      Text("Go to Graph \(graph.graphId)")
                                 }
                             }
-                            } // list
-                        } // vstack
-            } // nav view
+                        } // list
+            } // vstack
+        } // nav view
     }
 }
 
@@ -712,8 +895,82 @@ struct ContentView: View { // MUST BE CALLED CONTENT VIEW
                   sortDescriptors: [NSSortDescriptor(keyPath: \Graph.graphId, ascending: true)])
     var graphs: FetchedResults<Graph>
     
+    @FetchRequest(entity: Student.entity(),
+                  sortDescriptors: [])
+    var students: FetchedResults<Student>
+    
+    @FetchRequest(entity: Connection.entity(),
+                  sortDescriptors: [],
+//                  predicate: NSPredicate(format: "graphId == %@ AND trashed == false", NSNumber(value: 1)))
+                  predicate: NSPredicate(format: "graphId = %@", NSNumber(value: 1)))
+    var connections: FetchedResults<Connection>
+    
+    var nodeNumber: Int32 = 1
+    
     var body: some View {
         return GraphSelectionView(graphs: graphs)
+        
+        
+////         WORKS:
+////        Button("Make students") {
+//        Button("Make connections") {
+////            let s = Student(context: moc)
+////            s.id = UUID()
+////            s.name = "Bobby"
+////
+////            let s2 = Student(context: moc)
+////            s2.id = UUID()
+////            s2.name = "Diana"
+//
+//            let edge = Connection(context: self.moc)
+//            edge.id = UUID()
+//            edge.from = Int32(1)
+//            edge.to = 2
+//            edge.graphId = Int32(1)
+//
+////            let edge2 = Connection(context: self.moc)
+////            edge2.id = UUID()
+////            edge2.from = 1
+////            edge2.to = node.nodeNumber
+////            edge2.graphId = Int32(graphId)
+//
+//
+//            try? self.moc.save()
+//        }
+////        Button("Delete someone") {
+//        Button("Delete a connection") {
+//            // this is also works
+////            let bIndex: Int = students.firstIndex(where: {(student: Student) -> Bool in student.name == "Bobby"})!
+////            log("bIndex: \(bIndex)")
+////            let b = students[bIndex]
+////            log("b: \(b)")
+////            moc.delete(b)
+//            let edgeIndex: Int = connections.firstIndex(where: { (conn: Connection) -> Bool in
+//                Int32(1) == Int32(1) &&
+//                    (conn.to == nodeNumber && conn.from == Int32(2)
+//                        || conn.from == nodeNumber && conn.to == Int32(2))
+//            })!
+//            log("edgeIndex: \(edgeIndex)")
+//
+//            let b = connections[edgeIndex]
+//            moc.delete(b)
+//            // true
+//            log("b.isDeleted was just deleted: \(b.isDeleted)")
+//
+//            try? self.moc.save()
+//
+//            // false
+//            log("b.isDeleted: \(b.isDeleted)")
+//        }
+//
+////        ForEach(students, id: \.id) { (student: Student) in
+////            Text("Student: \(student)")
+////        }
+//        ForEach(connections, id: \.id) { (conn: Connection) in
+//            Text("Connection: \(conn)")
+//        }
+        
+        
     }
 }
 
