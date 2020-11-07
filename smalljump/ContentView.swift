@@ -528,8 +528,8 @@ struct GraphView: View {
     var nodes: FetchedResults<Node>
 //    var nodes: FetchedResults<Node>
     
-    @FetchRequest(entity: Connection.entity(),
-                  sortDescriptors: [])
+//    @FetchRequest(entity: Connection.entity(),
+//                  sortDescriptors: [])
     var connections: FetchedResults<Connection>
     
     let graphId: Int
@@ -537,12 +537,12 @@ struct GraphView: View {
     
     init(
         nodes: FetchedResults<Node>,
-         graphId: Int
-//         connections: FetchedResults<Connection>
+        graphId: Int,
+        connections: FetchedResults<Connection>
     ) {
         self._nodeCount = State.init(initialValue: nodes.count)
         self.nodes = nodes
-//        self.connections = connections
+        self.connections = connections
         self.graphId = graphId
     }
     
@@ -595,54 +595,33 @@ struct GraphDisplay: View {
 
     @Environment(\.managedObjectContext) var moc
     
-//    @FetchRequest(entity: Node.entity(),
-//                  // i.e. want to retrieve them in a consistent order, just like when they were created
-//                  // could also do this sorting outside or elsewhere?
-//                  sortDescriptors: [NSSortDescriptor(keyPath: \Node.nodeNumber, ascending: true)]
-////                  ,
-////
-////                  predicate: NSPredicate(format: "graphId == %@", "2")
-//
-//                  // now graphDisplay should only grab the nodes for
-//                  // a particular graph?
-//                  // first: hardcode the graph number, then
-//    )
-//    var nodes: FetchedResults<Node>
+    var nodesFetchRequest: FetchRequest<Node>
+    var nodes: FetchedResults<Node> { nodesFetchRequest.wrappedValue }
+    var connectionsFetchRequest: FetchRequest<Connection>
+    var connections: FetchedResults<Connection> { connectionsFetchRequest.wrappedValue }
     
-//    var nodes: FetchRequest<Node>
-    var fetchRequest: FetchRequest<Node>
-    var nodes: FetchedResults<Node> { fetchRequest.wrappedValue }
     let graphId: Int
 
-    init(
-//        nodes: FetchedResults<Node>,
-        graphId: Int
-    ) {
-//
-            log("inside init: graphId: \(graphId)")
-//        self.nodes = nodes
-        fetchRequest = FetchRequest<Node>(
+    init(graphId: Int) {
+        log("inside init: graphId: \(graphId)")
+        
+        nodesFetchRequest = FetchRequest<Node>(
             entity: Node.entity(),
             sortDescriptors: [NSSortDescriptor(keyPath: \Node.nodeNumber, ascending: true)],
-            predicate: NSPredicate(format: "graphId == %@",
-//                                   0 // this works
-//                                   1 // this throws
-                                   NSNumber(value: graphId)
-                                   // perfect: no nodes show up :-)
-//                                   NSNumber(value: 0)
-                                   
-                                   //graphId
-            ))
+            predicate: NSPredicate(format: "graphId == %@", NSNumber(value: graphId)))
+        
+        connectionsFetchRequest = FetchRequest<Connection>(
+            entity: Connection.entity(),
+            sortDescriptors: [],
+            predicate: NSPredicate(format: "graphId == %@", NSNumber(value: graphId)))
+        
         self.graphId = graphId
     }
     var body: some View {
         log("graphId in GraphDisplay: \(graphId)")
-        log("fetchRequest in GraphDisplay: \(fetchRequest)")
+        log("fetchRequest in GraphDisplay: \(nodesFetchRequest)")
         log("nodes in GraphDisplay: \(nodes)")
-//        return GraphView(nodes: nodes, connections: connections)
-        return GraphView(
-            nodes: nodes,
-            graphId: graphId)
+        return GraphView(nodes: nodes, graphId: graphId, connections: connections)
     }
 }
 
@@ -650,79 +629,91 @@ struct GraphDisplay: View {
  PREVIEW
  ---------------------------------------------------------------- */
 
-struct GraphEntityWhatever: Identifiable {
-    let id = UUID()
-    let graphNumber: Int
-}
 
-
-struct ContentView: View { // MUST BE CALLED CONTENT VIEW
+struct GraphSelectionView: View {
     @Environment(\.managedObjectContext) var moc
+
+    @State public var graphCount: Int // = 0
     
-//    let graphCount: Int = 1
-    // Start out with zero graphs
-    @State public var graphCount: Int = 0
-    
-    
+    // not really used in this high level
     @FetchRequest(entity: Node.entity(),
-                  // i.e. want to retrieve them in a consistent order, just like when they were created
-                  // could also do this sorting outside or elsewhere?
                   sortDescriptors: [NSSortDescriptor(keyPath: \Node.nodeNumber, ascending: true)])
     var nodes: FetchedResults<Node>
     
-    @FetchRequest(entity: Connection.entity(),
-                  sortDescriptors: [])
-    var connections: FetchedResults<Connection>
-        
-    let graphs: [GraphEntityWhatever] = [GraphEntityWhatever(graphNumber: 1), GraphEntityWhatever(graphNumber: 2), GraphEntityWhatever(graphNumber: 3)]
+    @FetchRequest(entity: Graph.entity(),
+                  sortDescriptors: [NSSortDescriptor(keyPath: \Graph.graphId, ascending: true)])
+    var graphs: FetchedResults<Graph>
     
+    // TODO: Find a better approach
     @State private var action: Int? = 0
     
+    init(graphs: FetchedResults<Graph>) {
+        log("GraphSelectionView: graphs.count: \(graphs.count)")
+        self._graphCount = State.init(initialValue: graphs.count)
+    }
+
     var body: some View {
-        
-        // TODO: Look further into proper behavior for Nav on iPhone vs. iPad
-        NavigationView {
-            
+        NavigationView { // TODO: Look further into proper behavior for Nav on iPhone vs. iPad
             Text("Demo: add some simple user settings here?")
             // this is a view modifier; wherever you attach this, you'll have the
             .navigationBarTitle(Text("Settings"), displayMode: .inline)
-                        
+        
             VStack(spacing: 30) {
-                List {
-                    // DEBUG: Doesn't work if placed outside List
-                    // DEBUG: Why must we use the $action mutation here? (graphCount mutation not enough)
-                    NavigationLink(destination: GraphDisplay(graphId: graphCount), tag: 1, selection: $action)
-                    {
-                        Text("Create new graph").onTapGesture {
-                            log("we're gonna make a new graph")
-                            graphCount += 1
-                            
-                            let node = Node(context: self.moc)
-                            mutateNewNode(node: node,
-                                          nodeNumber: 1,
-                                          graphId: graphCount)
-                            
-                            try? moc.save()
-                            
-                            log("ContentView: nodes are now: \(nodes)")
-                            log("self.action: \(self.action)")
-                            // NOTE?: do the CoreData and local state mutate first;
-                            // and only then go to the NavLink view
-                            self.action = 1
+                        List {
+                            // DEBUG: Doesn't work if placed outside List
+                            // DEBUG: Why must we use the $action mutation here? (graphCount mutation not enough)
+                            NavigationLink(destination: GraphDisplay(graphId: graphCount), tag: 1, selection: $action)
+                            {
+                                Text("Create new graph").onTapGesture {
+                                    log("we're gonna make a new graph")
+                                    log("graphCount was: \(graphCount)")
+                                    self.graphCount += 1
+                                    log("graphCount is now: \(graphCount)")
+                                    
+                                    let node = Node(context: self.moc)
+                                    mutateNewNode(node: node,
+                                                  nodeNumber: 1,
+                                                  graphId: graphCount)
+                                    
+                                    
+                                    // will also want to create a new graph
+                                    let graph = Graph(context: self.moc)
+                                    graph.id = UUID()
+                                    graph.graphId = Int32(graphCount)
+                                    
+                                    try? moc.save()
+                                    
+                                    log("ContentView: nodes are now: \(nodes)")
+                                    log("self.action: \(self.action)")
+                                    
+                                    // NOTE?: do the CoreData and local state mutate first;
+                                    // and only then go to the NavLink view
+                                    self.action = 1
+                                }
+                            }
+                            ForEach(graphs, id: \.id) { (graph: Graph) in
+                                NavigationLink(destination: GraphDisplay(graphId: Int(graph.graphId))
+                                ) {
+                                     Text("Go to Graph \(graph.graphId)")
+                                }
+                            }
+                            } // list
+                        } // vstack
+            } // nav view
+    }
+}
 
-                        }
-                    }
-                    ForEach(graphs, id: \.id) { (graph: GraphEntityWhatever) in
-                        NavigationLink(destination:
-//                                        Text("Graph: \(graph.graphNumber)")
-                                       GraphDisplay(graphId: graph.graphNumber)
-                        ) {
-                             Text("Edit Graph \(graph.graphNumber)")
-                        }
-                    }
-                }
-            }
-        }
+
+// right now this is basically the graph-selector view
+struct ContentView: View { // MUST BE CALLED CONTENT VIEW
+    @Environment(\.managedObjectContext) var moc
+    
+    @FetchRequest(entity: Graph.entity(),
+                  sortDescriptors: [NSSortDescriptor(keyPath: \Graph.graphId, ascending: true)])
+    var graphs: FetchedResults<Graph>
+    
+    var body: some View {
+        return GraphSelectionView(graphs: graphs)
     }
 }
 

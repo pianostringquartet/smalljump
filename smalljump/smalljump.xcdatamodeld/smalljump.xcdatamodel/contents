@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17192" systemVersion="19H2" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="ActiveGraph" representedClassName="ActiveGraph" syncable="YES" codeGenerationType="class">
+        <attribute name="number" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+    </entity>
     <entity name="Candy" representedClassName="Candy" syncable="YES">
         <attribute name="name" optional="YES" attributeType="String"/>
         <relationship name="origin" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Country" inverseName="candy" inverseEntity="Country"/>
@@ -17,6 +20,7 @@
         <relationship name="candy" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Candy" inverseName="origin" inverseEntity="Candy"/>
     </entity>
     <entity name="Graph" representedClassName="Graph" syncable="YES" codeGenerationType="class">
+        <attribute name="graphId" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="nodeCount" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <relationship name="node" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Node" inverseName="graph" inverseEntity="Node"/>
@@ -40,12 +44,13 @@
         <attribute name="name" optional="YES" attributeType="String"/>
     </entity>
     <elements>
+        <element name="ActiveGraph" positionX="27" positionY="45" width="128" height="58"/>
         <element name="Candy" positionX="-118.39453125" positionY="179.359375" width="128" height="73"/>
+        <element name="Connection" positionX="18" positionY="36" width="128" height="118"/>
         <element name="Country" positionX="141.5546875" positionY="62.8203125" width="128" height="88"/>
-        <element name="Graph" positionX="152.40234375" positionY="-53.65234375" width="128" height="88"/>
+        <element name="Graph" positionX="152.40234375" positionY="-53.65234375" width="128" height="103"/>
         <element name="Item" positionX="-63" positionY="-18" width="128" height="58"/>
         <element name="Node" positionX="34.91796875" positionY="-118.8125" width="128" height="178"/>
         <element name="Student" positionX="-63" positionY="-9" width="128" height="73"/>
-        <element name="Connection" positionX="18" positionY="36" width="128" height="118"/>
     </elements>
 </model>
