@@ -1,4 +1,4 @@
-# smalljump (prototype)
+# smalljump / prototype
 
 Ugly commit history repo of: https://github.com/pianostringquartet/prototype
 

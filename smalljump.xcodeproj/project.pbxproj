@@ -7,10 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		200D3E4725548C6E0050470C /* Country+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200D3E3D25548C6E0050470C /* Country+CoreDataClass.swift */; };
-		200D3E4825548C6E0050470C /* Country+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200D3E3E25548C6E0050470C /* Country+CoreDataProperties.swift */; };
-		200D3E4925548C6E0050470C /* Candy+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200D3E3F25548C6E0050470C /* Candy+CoreDataClass.swift */; };
-		200D3E4A25548C6E0050470C /* Candy+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200D3E4025548C6E0050470C /* Candy+CoreDataProperties.swift */; };
 		204108682554659900932502 /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 204108672554659900932502 /* Persistence.swift */; };
 		204108702554692E00932502 /* smalljump.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 2041086E2554692E00932502 /* smalljump.xcdatamodeld */; };
 		2064744225579AFB00CAC8AA /* positive_ping.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 2064743F25579AFB00CAC8AA /* positive_ping.mp3 */; };
@@ -27,10 +23,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		200D3E3D25548C6E0050470C /* Country+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Country+CoreDataClass.swift"; sourceTree = "<group>"; };
-		200D3E3E25548C6E0050470C /* Country+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Country+CoreDataProperties.swift"; sourceTree = "<group>"; };
-		200D3E3F25548C6E0050470C /* Candy+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Candy+CoreDataClass.swift"; sourceTree = "<group>"; };
-		200D3E4025548C6E0050470C /* Candy+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Candy+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		204108672554659900932502 /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
 		2041086F2554692E00932502 /* smalljump.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = smalljump.xcdatamodel; sourceTree = "<group>"; };
 		2064743F25579AFB00CAC8AA /* positive_ping.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = positive_ping.mp3; sourceTree = "<group>"; };
@@ -62,10 +54,6 @@
 		2085B0DF254DBE1300080A64 = {
 			isa = PBXGroup;
 			children = (
-				200D3E3D25548C6E0050470C /* Country+CoreDataClass.swift */,
-				200D3E3E25548C6E0050470C /* Country+CoreDataProperties.swift */,
-				200D3E3F25548C6E0050470C /* Candy+CoreDataClass.swift */,
-				200D3E4025548C6E0050470C /* Candy+CoreDataProperties.swift */,
 				2085B0EA254DBE1300080A64 /* smalljump */,
 				2085B0E9254DBE1300080A64 /* Products */,
 			);
@@ -195,15 +183,11 @@
 			files = (
 				2085B0EE254DBE1300080A64 /* ContentView.swift in Sources */,
 				204108682554659900932502 /* Persistence.swift in Sources */,
-				200D3E4825548C6E0050470C /* Country+CoreDataProperties.swift in Sources */,
 				20EB62EE2555A76A00022BFC /* GraphSelector.swift in Sources */,
-				200D3E4A25548C6E0050470C /* Candy+CoreDataProperties.swift in Sources */,
 				20C57854255781A9008DEB88 /* GraphUIElement.swift in Sources */,
 				20EB62F22555A78100022BFC /* GraphEditor.swift in Sources */,
 				2085B0EC254DBE1300080A64 /* smalljumpApp.swift in Sources */,
-				200D3E4725548C6E0050470C /* Country+CoreDataClass.swift in Sources */,
 				204108702554692E00932502 /* smalljump.xcdatamodeld in Sources */,
-				200D3E4925548C6E0050470C /* Candy+CoreDataClass.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
