@@ -9,11 +9,6 @@ import SwiftUI
 import AVFoundation
 import CoreData
 
-struct GraphUIElement: View {
-    var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
-    }
-}
 
 /* ----------------------------------------------------------------
  UTILS
@@ -269,12 +264,5 @@ struct Ball: View {
                     }
                 }
             })
-    }
-}
-
-
-struct GraphUIElement_Previews: PreviewProvider {
-    static var previews: some View {
-        GraphUIElement()
     }
 }

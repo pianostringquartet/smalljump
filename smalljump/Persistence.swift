@@ -5,42 +5,20 @@
 //  Created by cjc on 11/5/20.
 //
 
-//import Foundation
-
-//
-//  Persistence.swift
-//  testjump
-//
-//  Created by cjc on 11/5/20.
-//
-
 import CoreData
 
 struct PersistenceController {
     static let shared = PersistenceController()
-
-    // WHAT! we have to use this?
     
     static var preview: PersistenceController = {
         
-        print("in preview...")
         let result = PersistenceController(inMemory: true)
         
         let viewContext = result.container.viewContext
         
-        
-        // what is this really doing?
-        // it's attempting to manually create some items?
-//        for _ in 0..<2 {
-            // we pass the Item the
-//            let newItem = Item(context: viewContext)
-//            newItem.timestamp = Date()
-//        }
-        
         let node1: Node = Node(context: viewContext)
         node1.info = UUID()
         node1.isAnchored = true
-//                    node1.nodeNumber = //Int32.random(in: 0 ..< 100) //1
         node1.nodeNumber = Int32(1)
 
         node1.positionX = Float(0)
@@ -48,8 +26,6 @@ struct PersistenceController {
         node1.radius = 30
         
         do {
-            // oh god, this is really bad -- is this supposed to save the newItems we created,
-            // because we passed those items
             try viewContext.save()
         } catch {
             // Replace this implementation with code to handle the error appropriately.
@@ -63,7 +39,6 @@ struct PersistenceController {
     let container: NSPersistentContainer
 
     init(inMemory: Bool = false) {
-//        container = NSPersistentContainer(name: "testjump")
         container = NSPersistentContainer(name: "smalljump")
 
         if inMemory {
