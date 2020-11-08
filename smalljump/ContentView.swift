@@ -103,28 +103,28 @@ func updatePosition(value: DragGesture.Value, position: CGSize) -> CGSize {
  ---------------------------------------------------------------- */
 
 
-struct CDBall: View {
+struct Ball: View {
     @Environment(\.managedObjectContext) var moc
     
-    // for now these are still ViewState
-    @Binding public var nodeCount: Int
-    @Binding public var connectingNode: Int?
-
-    // Node info
-    @State private var info: UUID = UUID()
-    @State private var showPopover: Bool = false
-
+    @Binding private var nodeCount: Int
+    @Binding private var connectingNode: Int? // not persisted
     
-    var node: Node // mutated?
-
-    @State private var localPosition: CGSize // = CGSize.zero
-    @State private var localPreviousPosition: CGSize // = CGSize.zero
+    // node info
+    @State private var info: UUID = UUID()
+    @State private var showPopover: Bool = false // not persisted
+    
+    private var node: Node
+    
+    @State private var localPosition: CGSize = CGSize.zero
+    @State private var localPreviousPosition: CGSize = CGSize.zero
     
     let graphId: Int
     
-    var connectionsFetchRequest: FetchRequest<Connection>
-    var connections: FetchedResults<Connection> { connectionsFetchRequest.wrappedValue }
+    private var connectionsFetchRequest: FetchRequest<Connection>
+    private var connections: FetchedResults<Connection> { connectionsFetchRequest.wrappedValue }
     
+    // the minimum distance for the plus-sign to be dragged to become committed
+    let minDistance: CGFloat = CGFloat(90)
     
     init(nodeCount: Binding<Int>,
          connectingNode: Binding<Int?>,
@@ -147,60 +147,44 @@ struct CDBall: View {
         
         self.graphId = graphId
     }
-
+    
     private func determineColor() -> Color {
-//        if connectingNode == nodeNumber {
-//        if connectingNode == node.nodeNumber {
-        
-        // better?: use .map
         if connectingNode != nil && connectingNode! == node.nodeNumber {
             return Color.pink
         }
-//        else if !isAnchored {
         else if !node.isAnchored {
             return Color.blue
         }
         else {
-//            return position == CGSize.zero ?
-                return localPosition == CGSize.zero ?
-                    Color.white.opacity(0) :
-//                    Color.blue.opacity(0 + Double((abs(position.height) + abs(position.width)) / 99))
-                    Color.blue.opacity(0 + Double((abs(localPosition.height) + abs(localPosition.width)) / 99))
+            return localPosition == CGSize.zero ?
+                Color.white.opacity(0) :
+                Color.blue.opacity(0 + Double((abs(localPosition.height) + abs(localPosition.width)) / 99))
         }
     }
-
+    
+    private func movedEnough(width: CGFloat, height: CGFloat) -> Bool {
+        return abs(width) > minDistance || abs(height) > minDistance
+    }
+    
     var body: some View {
-//        log("CDBall body run")
-//        log("localPosition: \(localPosition)")
-//        log("localPreviousPosition: \(localPreviousPosition)")
-        log("CDBall: connectingNode: \(connectingNode)")
-        log("CDBall: nodeCount: \(nodeCount)")
-        
-        log("CDBall: node: \(node)")
-        log("CDBall: connections: \(connections)")
-        
         Circle().stroke(Color.black)
-//            .popover(isPresented: $showPopover, arrowEdge: .bottom) {
-//                VStack (spacing: 20) {
-//                    Text("Node Number: \(nodeNumber)")
-//                    Text("Node ID: \(info)")
-//                }
-//                .padding()
-//            }
+            .popover(isPresented: $showPopover, arrowEdge: .bottom) {
+                VStack (spacing: 20) {
+                    Text("Node Number: \(node.nodeNumber)")
+                    Text("Node ID: \(info)")
+                }
+                .padding()
+            }
             .background(Image(systemName: "plus"))
             .overlay(LinearGradient(gradient: Gradient(colors: [
                                                         // white of opacity 0 means: 'invisible'
-//                                                        position == CGSize.zero ? Color.white.opacity(0) : Color.white,
-                                                        localPosition == CGSize.zero ? Color.white.opacity(0)
-                                                            : determineColor()]),
-                               startPoint: .topLeading,
-                               endPoint: .bottomTrailing
-                ))
+                                                        localPosition == CGSize.zero ? Color.white.opacity(0) : Color.white,
+                                                        localPosition == CGSize.zero ? Color.white.opacity(0) : determineColor()]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+            ))
             .clipShape(/*@START_MENU_TOKEN@*/Circle()/*@END_MENU_TOKEN@*/)
-            
-            //added:
-            .overlay(Text("\(node.nodeNumber)"))
-//            .frame(width: radius, height: radius)
+            .overlay(Text(movedEnough(width: localPosition.width, height: localPosition.height) ? "\(node.nodeNumber)": ""))
             .frame(width: CGFloat(node.radius), height: CGFloat(node.radius))
             // Child stores its center in anchor preference data,
             // for parent to later access.
@@ -209,153 +193,79 @@ struct CDBall: View {
                               value: .center, // center for Anchor<CGPoint>
                               transform: {
                                 [BallPreferenceData(viewIdx: Int(node.nodeNumber), center: $0)] })
-//                                [BallPreferenceData(viewIdx: self.nodeNumber, center: $0)] })
-//            .offset(x: self.position.width, y: self.position.height)
             .offset(x: localPosition.width, y: localPosition.height)
             .gesture(DragGesture()
                         .onChanged {
-//                            self.position = updatePosition(value: $0,
-//                                                           position: self.previousPosition)
-//                            log("onChanged called")
-                            self.localPosition = updatePosition(value: $0,
-                                                           position: self.localPreviousPosition)
-                            
-                            
+                            self.localPosition = updatePosition(value: $0, position: self.localPreviousPosition)
                         }
-                        
                         .onEnded { (value: DragGesture.Value) in
-//                            if isAnchored {
-//                            log("onEnded called")
                             if node.isAnchored {
-//                                log("node is anchored")
-                                let minDistance: CGFloat = CGFloat(90)
-                                // Did we move the node enough for it to become a free, de-anchored node?
-                                let movedEnough: Bool =
-                                    abs(value.translation.width) > minDistance ||
-                                    abs(value.translation.height) > minDistance
-                                if movedEnough {
-//                                    log("node moved enough")
-//                                    self.isAnchored.toggle()
+                                if movedEnough(width: value.translation.width, height: value.translation.height) {
                                     node.isAnchored = false
-                                    
-//                                    self.previousPosition = self.position
                                     self.localPreviousPosition = self.localPosition
                                     
-//                                    self.nodeCount += 1
-                                    playSound(sound: "positive_ping", type: "mp3")
-                                    
-                                    // now,
-//                                    log("DE-ANCHORING: ")
-//                                    log("will try to create a node:")
                                     let node: Node = Node(context: self.moc)
                                     mutateNewNode(node: node,
-                                               nodeNumber: nodeCount + 1,
-                                               graphId: graphId)
+                                                  nodeNumber: nodeCount + 1,
+                                                  graphId: graphId)
                                     try? self.moc.save()
                                     
-                                    // do I even need to do this?
-                                    // it would be better to just do nodes.count
-                                    // wherever I need nodeCount + 1
                                     self.nodeCount += 1
+                                    playSound(sound: "positive_ping", type: "mp3")
                                 }
                                 else {
-//                                    log("node did not move enough")
-                                    withAnimation(.spring())
-//                                        { self.position = .zero }
-                                        { self.localPosition = CGSize.zero }
+                                    withAnimation(.spring()) { self.localPosition = CGSize.zero }
                                 }
                             }
                             else {
-//                                self.previousPosition = self.position
-//                                log("node was not anchored")
                                 self.localPreviousPosition = self.localPosition
                             }
                             
-//                            log("Will try to set node position now")
-                            // finally, in any case, we save the position of the ball:
                             node.positionX = Float(localPosition.width)
                             node.positionY = Float(localPosition.height)
-//                            log("Will try to save node position now")
                             
                             try? moc.save()
-                            
                         })
             .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))
-//            .onTapGesture(count: 2, perform: {
-//                if !isAnchored {
-//                    self.showPopover.toggle()
-//                }
-//            })
+            .onTapGesture(count: 2, perform: {
+                if !node.isAnchored {
+                    self.showPopover.toggle()
+                }
+            })
             .onTapGesture(count: /*@START_MENU_TOKEN@*/1/*@END_MENU_TOKEN@*/, perform: {
-//                if !isAnchored {
                 if !node.isAnchored {
                     let existsConnectingNode: Bool = connectingNode != nil
-//                    let isConnectingNode: Bool = existsConnectingNode && connectingNode == nodeNumber
                     let isConnectingNode: Bool = existsConnectingNode && connectingNode != nil && connectingNode! == node.nodeNumber
-
+                    
                     // Note: if no existing connecting node, make this node the connecting node
                     // ie user is attempting to create or remove a node
                     if !existsConnectingNode {
-//                        self.connectingNode = self.nodeNumber
-                        log("no connecting node; making myself the connector now")
                         self.connectingNode = Int(node.nodeNumber)
                     }
                     else { // ie there is an connecting node:
-                        // CORE DATA:
-//                        let edge: Connection = Connection(from: connectingNode!, to: self.nodeNumber)
-                        
-                        log("there exists a connecting node: \(connectingNode!)")
-                        
-                        // here we just create the Connection -- but don't save it yet...
-//                        let edge = Connection(context: self.moc)
-//                        edge.id = UUID()
-//                        edge.from = Int32(connectingNode!)
-//                        edge.to = node.nodeNumber
-//                        edge.graphId = Int32(graphId)
-                        
-
                         let edgeAlreadyExists: Bool = !connections.filter { (conn: Connection) -> Bool in
                             conn.graphId == Int32(graphId) &&
                                 (conn.to == node.nodeNumber && conn.from == Int32(connectingNode!)
                                     || conn.from == node.nodeNumber && conn.to == Int32(connectingNode!))
                         }.isEmpty
                         
-                        
-//
-
-                        
-                        log("edgeAlreadyExists: \(edgeAlreadyExists)")
-
-                        // if exist connecting node and I am the connecting node, cancel ie set connecting node=nil
                         if isConnectingNode {
-                            log("I am the connecting node; turning me off")
                             self.connectingNode = nil
                         }
                         // if existing connecting node and I am NOT the connecting node AND there already exists a connxn(connecting node, me),
                         // remove the connection and set connecting node=nil
                         else if !isConnectingNode && edgeAlreadyExists {
-//                            self.connections = connections.filter { $0 != edge }
-
-                            log("will try to delete an existing edge between FROM connectingNode \(connectingNode!) and TO nodeNumber: \(node.nodeNumber)")
-                            
                             
                             // Retrieve the existing connection and delete it
                             let fetchRequest : NSFetchRequest<Connection> = Connection.fetchRequest()
-                            fetchRequest.predicate = NSPredicate(format: "graphId = %i AND (from = %i AND to = %i) OR (to = %i AND from = %i)", graphId, connectingNode!, node.nodeNumber, connectingNode!, node.nodeNumber)
-
+                            fetchRequest.predicate = NSPredicate(format: "graphId = %i AND (from = %i AND to = %i) OR (to = %i AND from = %i)",
+                                                                 graphId, connectingNode!, node.nodeNumber, connectingNode!, node.nodeNumber)
                             let fetchedResults = try? moc.fetch(fetchRequest) as! [Connection]
-                            log("fetchedResults: \(fetchedResults)")
-                            log("node.nodeNumber: \(node.nodeNumber)")
-                            log("NSInteger(node.nodeNumber): \(NSInteger(node.nodeNumber))")
                             if let aConnection = fetchedResults?.first {
-                                log("there was a connection: \(aConnection)")
                                 moc.delete(aConnection)
-                                log("aConnection.isDeleted: \(aConnection.isDeleted)")
                                 try? moc.save()
-                                // okay, that worked, that deleted the connection
                             }
                             
-
                             self.connectingNode = nil
                             playSound(sound: "connection_removed", type: "mp3")
                         }
@@ -363,19 +273,11 @@ struct CDBall: View {
                         // add the connection and set connecting node=nil
                         else if !isConnectingNode && !edgeAlreadyExists {
                             
-//                            self.connections.append(edge)
-                            // ie. save the edge we defined earlier
-                            log("will try to save the earlier defined edge; ie commit the transactions")
-                            
-                            // alternatively, only finally create the edge here?
                             let edge = Connection(context: self.moc)
                             edge.id = UUID()
                             edge.from = Int32(connectingNode!)
                             edge.to = node.nodeNumber
                             edge.graphId = Int32(graphId)
-    
-                            
-                            
                             try? moc.save()
                             
                             self.connectingNode = nil
@@ -393,7 +295,7 @@ struct GraphView: View {
     
     // particular node to which we are adding/removing connections
     @State public var connectingNode: Int? = nil // not persisted
-
+    
     @State private var nodeCount: Int
     let graphId: Int
     
@@ -421,16 +323,12 @@ struct GraphView: View {
     
     var body: some View {
         VStack { // HACK: bottom right corner alignment
-            log("nodeCount in View: \(nodeCount)")
-            log("nodes.count: \(nodes.count)")
-            
-            Spacer()
             Spacer()
             HStack {
                 Spacer()
                 ZStack {
                     return ForEach(nodes, id: \.self) { (node: Node) in
-                        CDBall(
+                        Ball(
                             nodeCount: $nodeCount,
                             connectingNode: $connectingNode,
                             node: node,
@@ -440,48 +338,22 @@ struct GraphView: View {
                 }
             }
         }
-        // nothing for now
         .backgroundPreferenceValue(BallPreferenceKey.self) { (preferences: [BallPreferenceData]) in
             if connections.count >= 1 && nodeCount >= 2 {
-                log("might draw some lines...")
                 GeometryReader { (geometry: GeometryProxy) in
                     ForEach(connections, content: { (connection: Connection) in
-                        log("backgroundPreferenceValue: connections: \(connections)")
-                        // need to be protected here..
-                        
                         // -1 to convert from 1-based count to 0-based index
                         let toPref: BallPreferenceData = preferences[Int(connection.to) - 1]
                         let fromPref: BallPreferenceData = preferences[Int(connection.from) - 1]
-                        
-                        log("toPref: \(toPref)")
-                        log("fromPref: \(fromPref)")
-                        
                         line(from: geometry[toPref.center], to: geometry[fromPref.center])
                     })
                     
                 }
             }
-            
-            
-//            if connections.count >= 1 && nodeCount >= 2 {
-//                GeometryReader { (geometry: GeometryProxy) in
-//                    ForEach(connections, content: { (connection: Connection) in
-//                        // Note: we must convert the node number to an index position
-//                        let toPref: BallPreferenceData = preferences[connection.to - 1]
-//                        let fromPref: BallPreferenceData = preferences[connection.from - 1]
-//                        line(from: geometry[toPref.center], to: geometry[fromPref.center])
-//
-//                    })
-//                }
-//            }
         }
     }
 }
 
-
-
-// Retrieves nodes and connections just for this specific graph,
-// passes them to GraphView
 struct GraphDisplay: View {
     @Environment(\.managedObjectContext) var moc
     
@@ -492,14 +364,11 @@ struct GraphDisplay: View {
     var connections: FetchedResults<Connection> { connectionsFetchRequest.wrappedValue }
     
     let graphId: Int
-
+    
     init(graphId: Int) {
-        log("inside init: graphId: \(graphId)")
-        
         nodesFetchRequest = FetchRequest<Node>(
             entity: Node.entity(),
             sortDescriptors: [NSSortDescriptor(keyPath: \Node.nodeNumber, ascending: true)],
-            // should this be?:
             predicate: NSPredicate(format: "graphId = %@", NSNumber(value: graphId)))
         
         connectionsFetchRequest = FetchRequest<Connection>(
@@ -510,12 +379,10 @@ struct GraphDisplay: View {
         self.graphId = graphId
     }
     var body: some View {
-        log("graphId in GraphDisplay: \(graphId)")
-        log("nodes in GraphDisplay: \(nodes)")
-        log("connections in GraphDisplay: \(connections)")
         return GraphView(graphId: graphId, nodeCount: nodes.count)
     }
 }
+
 
 /* ----------------------------------------------------------------
  PREVIEW
@@ -524,7 +391,7 @@ struct GraphDisplay: View {
 
 struct GraphSelectionView: View {
     @Environment(\.managedObjectContext) var moc
-
+    
     @State public var graphCount: Int // = 0
     
     // not really used in this high level
@@ -543,55 +410,48 @@ struct GraphSelectionView: View {
         log("GraphSelectionView: graphs.count: \(graphs.count)")
         self._graphCount = State.init(initialValue: graphs.count)
     }
-
+    
     var body: some View {
         NavigationView { // TODO: Look further into proper behavior for Nav on iPhone vs. iPad
             Text("Demo: add some simple user settings here?")
-            // this is a view modifier; wherever you attach this, you'll have the
-            .navigationBarTitle(Text("Settings"), displayMode: .inline)
-        
+                .navigationBarTitle(Text("Settings"), displayMode: .inline)
+            
             VStack(spacing: 30) {
-                        List {
-                            // DEBUG: Doesn't work if placed outside List
-                            // DEBUG: Why must we use the $action mutation here? (graphCount mutation not enough)
-                            NavigationLink(destination: GraphDisplay(graphId: graphCount), tag: 1, selection: $action)
-                            {
-                                Text("Create new graph").onTapGesture {
-                                    log("we're gonna make a new graph")
-                                    log("graphCount was: \(graphCount)")
-                                    self.graphCount += 1
-                                    log("graphCount is now: \(graphCount)")
-                                    
-                                    // Create first node for graph
-                                    let node = Node(context: self.moc)
-                                    mutateNewNode(node: node,
-                                                  nodeNumber: 1,
-                                                  graphId: graphCount)
-                                    
-                                    // Create graph itself
-                                    let graph = Graph(context: self.moc)
-                                    graph.id = UUID()
-                                    graph.graphId = Int32(graphCount)
-                                    
-                                    try? moc.save()
-                                    
-                                    log("ContentView: nodes are now: \(nodes)")
-                                    log("self.action: \(self.action)")
-                                    
-                                    // NOTE?: do the CoreData and local state mutate first;
-                                    // and only then go to the NavLink view
-                                    self.action = 1
-                                }
-                            }
-                            ForEach(graphs, id: \.id) { (graph: Graph) in
-                                NavigationLink(destination: GraphDisplay(graphId: Int(graph.graphId))
-                                ) {
-                                     Text("Go to Graph \(graph.graphId)")
-                                }
-                            }
-                        } // list
-            } // vstack
-        } // nav view
+                List {
+                    // DEBUG: Doesn't work if placed outside List
+                    // DEBUG: Why must we use the $action mutation here? (graphCount mutation not enough)
+                    NavigationLink(destination: GraphDisplay(graphId: graphCount), tag: 1, selection: $action)
+                    {
+                        Text("Create new graph").onTapGesture {
+                            self.graphCount += 1
+                            
+                            // Create first node for graph
+                            let node = Node(context: self.moc)
+                            mutateNewNode(node: node,
+                                          nodeNumber: 1,
+                                          graphId: graphCount)
+                            
+                            // Create graph itself
+                            let graph = Graph(context: self.moc)
+                            graph.id = UUID()
+                            graph.graphId = Int32(graphCount)
+                            
+                            try? moc.save()
+                            
+                            // NOTE?: do the CoreData and local state mutate first;
+                            // and only then go to the NavLink view
+                            self.action = 1
+                        }
+                    }
+                    ForEach(graphs, id: \.id) { (graph: Graph) in
+                        NavigationLink(destination: GraphDisplay(graphId: Int(graph.graphId))
+                        ) {
+                            Text("Go to Graph \(graph.graphId)")
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -627,7 +487,7 @@ struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView() // must be named content view
             .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)
-
+        
     }
 }
 
@@ -642,5 +502,5 @@ func mutateNewNode(node: Node, nodeNumber: Int, graphId: Int) -> () {
     node.graphId = Int32(graphId)
     node.positionX = Float(0)
     node.positionY = Float(0)
-    node.radius = 30
+    node.radius = 50
 }
