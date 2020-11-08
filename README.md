@@ -1,5 +1,6 @@
-# prototype / smalljump
+# smalljump (prototype)
 
+Ugly commit history repo of: https://github.com/pianostringquartet/prototype
 
 ## Stage 7: persistent graphs and selection screen
 
@@ -8,6 +9,8 @@ Graphs (nodes and edges) are now persisted across app closures.
 We can create and edit multiple graphs.
 
 Also, nodes now display their numbers.
+
+![](persistent_graphs.gif)
 
 
 ## Stage 6: node info; improved node commit coloring
