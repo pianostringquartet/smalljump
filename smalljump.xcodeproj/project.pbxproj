@@ -21,6 +21,7 @@
 		20A71F7F25523BE500553F7E /* connection_removed.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 20A71F7D25523BE500553F7E /* connection_removed.mp3 */; };
 		20A71F8025523BE500553F7E /* connection_added.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 20A71F7E25523BE500553F7E /* connection_added.mp3 */; };
 		20B2923B255371D8009074A2 /* Introspect in Frameworks */ = {isa = PBXBuildFile; productRef = 20B2923A255371D8009074A2 /* Introspect */; };
+		20C57854255781A9008DEB88 /* GraphUIElement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20C57853255781A9008DEB88 /* GraphUIElement.swift */; };
 		20EB62EE2555A76A00022BFC /* GraphSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20EB62ED2555A76A00022BFC /* GraphSelector.swift */; };
 		20EB62F22555A78100022BFC /* GraphEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20EB62F12555A78100022BFC /* GraphEditor.swift */; };
 /* End PBXBuildFile section */
@@ -41,6 +42,7 @@
 		20A71F7A2552218000553F7E /* positive_ping.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = positive_ping.mp3; sourceTree = SOURCE_ROOT; };
 		20A71F7D25523BE500553F7E /* connection_removed.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = connection_removed.mp3; path = ../../../../Downloads/connection_removed.mp3; sourceTree = "<group>"; };
 		20A71F7E25523BE500553F7E /* connection_added.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = connection_added.mp3; path = ../../../../Downloads/connection_added.mp3; sourceTree = "<group>"; };
+		20C57853255781A9008DEB88 /* GraphUIElement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphUIElement.swift; sourceTree = "<group>"; };
 		20EB62ED2555A76A00022BFC /* GraphSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphSelector.swift; sourceTree = "<group>"; };
 		20EB62F12555A78100022BFC /* GraphEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphEditor.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -90,6 +92,7 @@
 				20A71F782552202500553F7E /* Sounds */,
 				2085B0F1254DBE1600080A64 /* Preview Content */,
 				2041086E2554692E00932502 /* smalljump.xcdatamodeld */,
+				20C57853255781A9008DEB88 /* GraphUIElement.swift */,
 			);
 			path = smalljump;
 			sourceTree = "<group>";
@@ -195,6 +198,7 @@
 				200D3E4825548C6E0050470C /* Country+CoreDataProperties.swift in Sources */,
 				20EB62EE2555A76A00022BFC /* GraphSelector.swift in Sources */,
 				200D3E4A25548C6E0050470C /* Candy+CoreDataProperties.swift in Sources */,
+				20C57854255781A9008DEB88 /* GraphUIElement.swift in Sources */,
 				20EB62F22555A78100022BFC /* GraphEditor.swift in Sources */,
 				2085B0EC254DBE1300080A64 /* smalljumpApp.swift in Sources */,
 				200D3E4725548C6E0050470C /* Country+CoreDataClass.swift in Sources */,
