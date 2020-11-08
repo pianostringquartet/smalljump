@@ -12,7 +12,6 @@
         <attribute name="graphId" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="to" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="trashed" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <relationship name="node" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Node" inverseName="connection" inverseEntity="Node"/>
     </entity>
     <entity name="Country" representedClassName="Country" syncable="YES">
@@ -47,7 +46,7 @@
     <elements>
         <element name="ActiveGraph" positionX="27" positionY="45" width="128" height="58"/>
         <element name="Candy" positionX="-118.39453125" positionY="179.359375" width="128" height="73"/>
-        <element name="Connection" positionX="18" positionY="36" width="128" height="133"/>
+        <element name="Connection" positionX="18" positionY="36" width="128" height="118"/>
         <element name="Country" positionX="141.5546875" positionY="62.8203125" width="128" height="88"/>
         <element name="Graph" positionX="152.40234375" positionY="-53.65234375" width="128" height="103"/>
         <element name="Item" positionX="-63" positionY="-18" width="128" height="58"/>

@@ -9,6 +9,7 @@ import SwiftUI
 import AVFoundation
 import CoreData
 
+
 /* ----------------------------------------------------------------
  UTILS
  ---------------------------------------------------------------- */
@@ -57,23 +58,7 @@ struct BallPreferenceKey: PreferenceKey {
 
 
 /* ----------------------------------------------------------------
- DOMAIN TYPES: representations of domain concepts
- ---------------------------------------------------------------- */
-
-//struct Connection: Identifiable, Equatable {
-//    let id: UUID = UUID()
-//    let from: Int
-//    let to: Int
-//
-//    static func ==(lhs: Connection, rhs: Connection) -> Bool {
-//        // Edgeless connection:
-//        return lhs.from == rhs.from && lhs.to == rhs.to || lhs.from == rhs.to && lhs.to == rhs.from
-//    }
-//}
-
-
-/* ----------------------------------------------------------------
- UI ELEMENTS: draggable balls, etc.
+ UI ELEMENTS: draggable balls, drawn edges etc.
  ---------------------------------------------------------------- */
 
 struct Line: Shape {
@@ -96,13 +81,6 @@ func updatePosition(value: DragGesture.Value, position: CGSize) -> CGSize {
            height: value.translation.height + position.height)
 }
 
-
-
-/* ----------------------------------------------------------------
- CONTENT VIEW
- ---------------------------------------------------------------- */
-
-
 struct Ball: View {
     @Environment(\.managedObjectContext) var moc
     
@@ -123,7 +101,7 @@ struct Ball: View {
     private var connectionsFetchRequest: FetchRequest<Connection>
     private var connections: FetchedResults<Connection> { connectionsFetchRequest.wrappedValue }
     
-    // the minimum distance for the plus-sign to be dragged to become committed
+    // minimum distance for plus-sign to be dragged to become committed as a node
     let minDistance: CGFloat = CGFloat(90)
     
     init(nodeCount: Binding<Int>,
@@ -297,6 +275,7 @@ struct GraphView: View {
     @State public var connectingNode: Int? = nil // not persisted
     
     @State private var nodeCount: Int
+    
     let graphId: Int
     
     var nodesFetchRequest: FetchRequest<Node>
@@ -312,13 +291,12 @@ struct GraphView: View {
         nodesFetchRequest = FetchRequest<Node>(
             entity: Node.entity(),
             sortDescriptors: [NSSortDescriptor(keyPath: \Node.nodeNumber, ascending: true)],
-            // should this be?:
-            predicate: NSPredicate(format: "graphId = %@", NSNumber(value: graphId)))
+            predicate: NSPredicate(format: "graphId = %i", graphId))
         
         connectionsFetchRequest = FetchRequest<Connection>(
             entity: Connection.entity(),
             sortDescriptors: [],
-            predicate: NSPredicate(format: "graphId = %@", NSNumber(value: graphId)))
+            predicate: NSPredicate(format: "graphId = %i", graphId))
     }
     
     var body: some View {
@@ -328,11 +306,10 @@ struct GraphView: View {
                 Spacer()
                 ZStack {
                     return ForEach(nodes, id: \.self) { (node: Node) in
-                        Ball(
-                            nodeCount: $nodeCount,
-                            connectingNode: $connectingNode,
-                            node: node,
-                            graphId: graphId)
+                        Ball(nodeCount: $nodeCount,
+                             connectingNode: $connectingNode,
+                             node: node,
+                             graphId: graphId)
                     }.padding(.trailing, 30).padding(.bottom, 30)
                     
                 }
@@ -392,23 +369,23 @@ struct GraphDisplay: View {
 struct GraphSelectionView: View {
     @Environment(\.managedObjectContext) var moc
     
-    @State public var graphCount: Int // = 0
+    @State private var graphCount: Int // = 0
     
     // not really used in this high level
-    @FetchRequest(entity: Node.entity(),
-                  sortDescriptors: [NSSortDescriptor(keyPath: \Node.nodeNumber, ascending: true)])
-    var nodes: FetchedResults<Node>
+    //    @FetchRequest(entity: Node.entity(),
+    //                  sortDescriptors: [NSSortDescriptor(keyPath: \Node.nodeNumber, ascending: true)])
+    //    var nodes: FetchedResults<Node>
     
-    @FetchRequest(entity: Graph.entity(),
-                  sortDescriptors: [NSSortDescriptor(keyPath: \Graph.graphId, ascending: true)])
+    //    @FetchRequest(entity: Graph.entity(),
+    //                  sortDescriptors: [NSSortDescriptor(keyPath: \Graph.graphId, ascending: true)])
     var graphs: FetchedResults<Graph>
     
-    // TODO: Find a better approach
+    // TODO: Find a better approach to route to 'new screen'
     @State private var action: Int? = 0
     
     init(graphs: FetchedResults<Graph>) {
-        log("GraphSelectionView: graphs.count: \(graphs.count)")
         self._graphCount = State.init(initialValue: graphs.count)
+        self.graphs = graphs
     }
     
     var body: some View {
@@ -425,7 +402,7 @@ struct GraphSelectionView: View {
                         Text("Create new graph").onTapGesture {
                             self.graphCount += 1
                             
-                            // Create first node for graph
+                            // Create first node for new graph
                             let node = Node(context: self.moc)
                             mutateNewNode(node: node,
                                           nodeNumber: 1,
@@ -438,8 +415,8 @@ struct GraphSelectionView: View {
                             
                             try? moc.save()
                             
-                            // NOTE?: do the CoreData and local state mutate first;
-                            // and only then go to the NavLink view
+                            // BUG?: sometimes CoreData mutation is not finished
+                            // before we call this and go to graph-edit screen?
                             self.action = 1
                         }
                     }
@@ -455,8 +432,10 @@ struct GraphSelectionView: View {
     }
 }
 
+/* ----------------------------------------------------------------
+ CONTENT VIEW
+ ---------------------------------------------------------------- */
 
-// right now this is basically the graph-selector view
 struct ContentView: View { // MUST BE CALLED CONTENT VIEW
     @Environment(\.managedObjectContext) var moc
     
@@ -464,22 +443,8 @@ struct ContentView: View { // MUST BE CALLED CONTENT VIEW
                   sortDescriptors: [NSSortDescriptor(keyPath: \Graph.graphId, ascending: true)])
     var graphs: FetchedResults<Graph>
     
-    @FetchRequest(entity: Student.entity(),
-                  sortDescriptors: [])
-    var students: FetchedResults<Student>
-    
-    @FetchRequest(entity: Connection.entity(),
-                  sortDescriptors: [],
-                  predicate: NSPredicate(format: "graphId = %i", 1))
-    var connections: FetchedResults<Connection>
-    
-    var nodeNumber: Int32 = 1
-    
     var body: some View {
         return GraphSelectionView(graphs: graphs)
-        
-        
-        
     }
 }
 
