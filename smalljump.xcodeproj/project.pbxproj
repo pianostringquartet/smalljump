@@ -13,11 +13,13 @@
 		200D3E4A25548C6E0050470C /* Candy+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200D3E4025548C6E0050470C /* Candy+CoreDataProperties.swift */; };
 		204108682554659900932502 /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 204108672554659900932502 /* Persistence.swift */; };
 		204108702554692E00932502 /* smalljump.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 2041086E2554692E00932502 /* smalljump.xcdatamodeld */; };
+		2064744225579AFB00CAC8AA /* positive_ping.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 2064743F25579AFB00CAC8AA /* positive_ping.mp3 */; };
+		2064744325579AFB00CAC8AA /* connection_added.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 2064744025579AFB00CAC8AA /* connection_added.mp3 */; };
+		2064744425579AFB00CAC8AA /* connection_removed.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 2064744125579AFB00CAC8AA /* connection_removed.mp3 */; };
 		2085B0EC254DBE1300080A64 /* smalljumpApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2085B0EB254DBE1300080A64 /* smalljumpApp.swift */; };
 		2085B0EE254DBE1300080A64 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2085B0ED254DBE1300080A64 /* ContentView.swift */; };
 		2085B0F0254DBE1600080A64 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2085B0EF254DBE1600080A64 /* Assets.xcassets */; };
 		2085B0F3254DBE1600080A64 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2085B0F2254DBE1600080A64 /* Preview Assets.xcassets */; };
-		20A71F7B2552218000553F7E /* positive_ping.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 20A71F7A2552218000553F7E /* positive_ping.mp3 */; };
 		20B2923B255371D8009074A2 /* Introspect in Frameworks */ = {isa = PBXBuildFile; productRef = 20B2923A255371D8009074A2 /* Introspect */; };
 		20C57854255781A9008DEB88 /* GraphUIElement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20C57853255781A9008DEB88 /* GraphUIElement.swift */; };
 		20EB62EE2555A76A00022BFC /* GraphSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20EB62ED2555A76A00022BFC /* GraphSelector.swift */; };
@@ -31,13 +33,15 @@
 		200D3E4025548C6E0050470C /* Candy+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Candy+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		204108672554659900932502 /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
 		2041086F2554692E00932502 /* smalljump.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = smalljump.xcdatamodel; sourceTree = "<group>"; };
+		2064743F25579AFB00CAC8AA /* positive_ping.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = positive_ping.mp3; sourceTree = "<group>"; };
+		2064744025579AFB00CAC8AA /* connection_added.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = connection_added.mp3; sourceTree = "<group>"; };
+		2064744125579AFB00CAC8AA /* connection_removed.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = connection_removed.mp3; sourceTree = "<group>"; };
 		2085B0E8254DBE1300080A64 /* smalljump.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = smalljump.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2085B0EB254DBE1300080A64 /* smalljumpApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = smalljumpApp.swift; sourceTree = "<group>"; };
 		2085B0ED254DBE1300080A64 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		2085B0EF254DBE1600080A64 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2085B0F2254DBE1600080A64 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		2085B0F4254DBE1600080A64 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		20A71F7A2552218000553F7E /* positive_ping.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = positive_ping.mp3; sourceTree = SOURCE_ROOT; };
 		20C57853255781A9008DEB88 /* GraphUIElement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphUIElement.swift; sourceTree = "<group>"; };
 		20EB62ED2555A76A00022BFC /* GraphSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphSelector.swift; sourceTree = "<group>"; };
 		20EB62F12555A78100022BFC /* GraphEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GraphEditor.swift; sourceTree = "<group>"; };
@@ -104,7 +108,9 @@
 		20A71F782552202500553F7E /* Sounds */ = {
 			isa = PBXGroup;
 			children = (
-				20A71F7A2552218000553F7E /* positive_ping.mp3 */,
+				2064744025579AFB00CAC8AA /* connection_added.mp3 */,
+				2064744125579AFB00CAC8AA /* connection_removed.mp3 */,
+				2064743F25579AFB00CAC8AA /* positive_ping.mp3 */,
 			);
 			path = Sounds;
 			sourceTree = "<group>";
@@ -174,7 +180,9 @@
 			files = (
 				2085B0F3254DBE1600080A64 /* Preview Assets.xcassets in Resources */,
 				2085B0F0254DBE1600080A64 /* Assets.xcassets in Resources */,
-				20A71F7B2552218000553F7E /* positive_ping.mp3 in Resources */,
+				2064744225579AFB00CAC8AA /* positive_ping.mp3 in Resources */,
+				2064744325579AFB00CAC8AA /* connection_added.mp3 in Resources */,
+				2064744425579AFB00CAC8AA /* connection_removed.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
